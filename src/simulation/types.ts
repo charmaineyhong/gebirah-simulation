@@ -1,9 +1,5 @@
 /**
  * Type Definitions for the Gebirah Agent-Based Simulation
- *
- * These types define the 3 agent types (Donation Request, Traveller, Volunteer)
- * and their state machines, exactly as described in Section 4.7.1 and 4.7.2
- * of the midterms report.
  */
 
 import type { Country, UrgencyLevel, MatchingAlgorithm, WillingnessScenario } from "../config/constants";

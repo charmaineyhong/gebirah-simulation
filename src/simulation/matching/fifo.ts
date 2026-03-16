@@ -1,13 +1,5 @@
 /**
  * FIFO (First In, First Out) Matching Algorithm
- *
- * The simplest algorithm: serve requests in the order they arrived.
- * Oldest requests get matched first. For each traveller, we keep
- * assigning the oldest waiting requests until their spare capacity
- * is full (or no more matching requests exist for that destination).
- *
- * Think of it like a queue at a counter - first person in line
- * gets served first, regardless of how urgent their need is.
  */
 
 import type { DonationRequest, Traveller } from "../types";

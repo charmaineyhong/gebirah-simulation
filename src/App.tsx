@@ -55,10 +55,10 @@ function App() {
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <h1 className="text-2xl font-bold text-gray-900">
-            Gebirah Simulation
+            Project Gebirah
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Agent-Based Simulation for Humanitarian Donation Delivery via Travellers' Excess Baggage
+            Agent-Based Simulation for Humanitarian Donation Delivery
           </p>
         </div>
       </header>
@@ -92,7 +92,7 @@ function App() {
                 <div className="font-medium text-gray-800 mb-1">1. Configure</div>
                 <p>
                   Pick a willingness scenario (what % of travellers will help),
-                  number of runs, and start month.
+                  number of runs, start month and Operational Reach.
                 </p>
               </div>
               <div className="border border-gray-200 rounded-lg p-4">
@@ -109,11 +109,6 @@ function App() {
                   times, and per-country breakdowns across algorithms.
                 </p>
               </div>
-            </div>
-            <div className="mt-4 p-4 bg-blue-50 rounded-lg text-sm text-blue-800">
-              <strong>Design Challenge:</strong> How might we minimise the total
-              number of monthly unfulfilled donation requests by leveraging
-              travellers' excess baggage?
             </div>
           </div>
         )}

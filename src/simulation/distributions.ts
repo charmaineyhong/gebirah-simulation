@@ -1,10 +1,6 @@
 /**
  * Probability Distribution Functions
  *
- * These are the mathematical "dice" the simulation uses to generate
- * random but realistic data. Each distribution models a different
- * real-world phenomenon:
- *
  * - Poisson:     How many donation requests arrive per day (random count)
  * - Gamma:       How much personal luggage a traveller carries (random weight)
  * - Bernoulli:   Yes/no decisions (is a traveller willing? does a volunteer show up?)
@@ -13,7 +9,6 @@
  *
  * All functions use a seeded random number generator (SeededRNG) so that
  * results are reproducible - same seed = same results every time.
- * This is essential for the controlled experiment (Section 4.7.5 of report).
  */
 
 // ============================================================
@@ -41,11 +36,6 @@ export class SeededRNG {
 
 // ============================================================
 // POISSON DISTRIBUTION
-// Models: "How many events happen in a time period?"
-// Used for: Donation request arrivals per day
-//
-// Example: If lambda=10 (avg 10 requests/day), on any given day
-// you might get 7, 10, 12, etc. - it varies randomly around 10.
 // ============================================================
 
 export function samplePoisson(rng: SeededRNG, lambda: number): number {
@@ -64,11 +54,6 @@ export function samplePoisson(rng: SeededRNG, lambda: number): number {
 
 // ============================================================
 // GAMMA DISTRIBUTION
-// Models: "How much does something weigh?" (continuous, positive values)
-// Used for: Personal luggage weight (mean=15.9kg, shape=5.0)
-//
-// The shape parameter controls how "spread out" the distribution is.
-// With shape=5 and mean=15.9kg, most values fall between 8-25kg.
 // ============================================================
 
 export function sampleGamma(rng: SeededRNG, shape: number, scale: number): number {
@@ -113,12 +98,6 @@ function sampleStandardNormal(rng: SeededRNG): number {
 
 // ============================================================
 // BERNOULLI DISTRIBUTION
-// Models: "Does this event happen or not?" (coin flip with custom probability)
-// Used for:
-//   - Is a traveller willing to carry donations? (p = 0.03/0.06/0.10)
-//   - Does a volunteer show up? (p = 0.70-0.95)
-//
-// Returns true with probability p, false with probability (1-p)
 // ============================================================
 
 export function sampleBernoulli(rng: SeededRNG, p: number): boolean {
@@ -127,14 +106,6 @@ export function sampleBernoulli(rng: SeededRNG, p: number): boolean {
 
 // ============================================================
 // CATEGORICAL DISTRIBUTION
-// Models: "Pick one option from a list, where each option has a different chance"
-// Used for:
-//   - Picking which country a donation request is for (HDI weights)
-//   - Picking which country a traveller is flying to (CAAS weights)
-//   - Picking urgency level (High 20%, Medium 50%, Low 30%)
-//
-// Example: If weights are {Myanmar: 0.35, Cambodia: 0.25, ...}
-// then Myanmar gets picked 35% of the time.
 // ============================================================
 
 export function sampleCategorical<T extends string>(
@@ -158,11 +129,6 @@ export function sampleCategorical<T extends string>(
 
 // ============================================================
 // UNIFORM DISTRIBUTION
-// Models: "Pick a random number between min and max"
-// Used for:
-//   - Request weight (1-15kg, uniform random)
-//   - Volunteer reliability (0.70-0.95)
-//   - Flight departure hour
 // ============================================================
 
 /** Returns a random integer between min and max (inclusive) */

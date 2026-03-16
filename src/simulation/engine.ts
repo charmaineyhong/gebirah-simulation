@@ -1,8 +1,7 @@
 /**
  * Simulation Engine
  *
- * This is the HEART of the simulation. It runs the daily loop for
- * 30 simulated days, exactly as described in Section 4.7.3 of the report.
+ * It runs the daily loop for 30 simulated days
  *
  * Each day, the engine:
  * 1. Generates new donation requests (Poisson arrivals, HDI-weighted)

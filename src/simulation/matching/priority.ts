@@ -1,14 +1,5 @@
 /**
  * Priority-Based Matching Algorithm
- *
- * Like FIFO, but HIGH urgency requests jump to the front of the queue.
- * Within the same urgency level, older requests still go first.
- *
- * Priority order: High > Medium > Low, then oldest first within each level.
- *
- * Think of it like a hospital emergency room - the most critical patients
- * get seen first, but among equally critical patients, whoever arrived
- * first gets treated first.
  */
 
 import type { DonationRequest, Traveller } from "../types";

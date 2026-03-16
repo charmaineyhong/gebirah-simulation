@@ -1,17 +1,5 @@
 /**
  * Weight-Optimised Matching Algorithm (0/1 Knapsack)
- *
- * The smartest algorithm: for each traveller, pick the COMBINATION
- * of requests that maximises the total weight carried per flight.
- *
- * This is a classic "knapsack problem" from computer science:
- * Given a bag (spare capacity) and items (donation requests) of
- * different weights, which items should you pack to use the most space?
- *
- * Think of it like packing a suitcase - you want to fill it as
- * completely as possible, wasting as little space as you can.
- *
- * We use dynamic programming to solve this efficiently.
  */
 
 import type { DonationRequest, Traveller } from "../types";

@@ -10,10 +10,7 @@
  * 3. Rolling the "reliability dice" (Bernoulli) to see if they show up
  * 4. If they show up → goods go to "In Transit" → eventually "Fulfilled"
  * 5. If they don't show up → request goes back to "Waiting" (re-queued)
- *
- * From the report (Section 4.7.2):
- * - Volunteer reliability ranges from 70% to 95%
- * - On no-show, requests are re-queued to the waiting pool
+ 
  */
 
 import type { DonationRequest, Traveller, Volunteer } from "./types";

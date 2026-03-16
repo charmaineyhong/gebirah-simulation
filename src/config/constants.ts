@@ -2,7 +2,7 @@
  * Simulation Constants
  *
  * All numbers in this file come from two sources:
- * 1. Our midterms report (Oral Report 1 - 60.008 Systems Design Studio)
+ * 1. Oral Report 1 - 60.008 Systems Design Studio
  * 2. Real data fetched from data.gov.sg (CAAS air passenger statistics)
  *
  * See the /data folder for the scripts that fetched and preprocessed the data.

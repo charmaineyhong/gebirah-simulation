@@ -67,7 +67,7 @@ export default function SimulationSetup({ onRun, isRunning }: Props) {
             <option value="optimistic">Optimistic (10% willing)</option>
           </select>
           <p className="text-xs text-gray-400 mt-1">
-            % of travellers willing to carry donations (CAF World Giving Index)
+            % of travellers willing to carry donations (Based on CAF World Giving Index)
           </p>
         </div>
 
@@ -92,7 +92,7 @@ export default function SimulationSetup({ onRun, isRunning }: Props) {
             <span>6.0% (full reach — all willing travellers)</span>
           </div>
           <p className="text-xs text-gray-400 mt-1">
-            % of willing travellers Gebirah can operationally coordinate (limited by coordinator capacity, check-in counter partnerships, etc.)
+            % of willing travellers Gebirah can operationally manage currently
           </p>
         </div>
 
@@ -143,7 +143,7 @@ export default function SimulationSetup({ onRun, isRunning }: Props) {
       {/* Live Preview: Traveller Funnel */}
       <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
         <h4 className="text-sm font-medium text-gray-700 mb-2">
-          Traveller Funnel Preview (from Changi Airport)
+          Number of Travellers (from Changi Airport)
         </h4>
         <div className="text-xs text-gray-500 space-y-1">
           <div className="flex justify-between">

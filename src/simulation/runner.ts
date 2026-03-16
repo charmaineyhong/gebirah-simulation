@@ -1,9 +1,6 @@
 /**
  * Experiment Runner
  *
- * This is the "scientist" of the simulation. It runs the controlled
- * experiment described in Section 4.7.5 of the report:
- *
  * 1. For each matching algorithm (FIFO, Priority, Weight-Optimised):
  *    - Run the simulation multiple times with different random seeds
  *    - Each run produces slightly different results (because of randomness)
