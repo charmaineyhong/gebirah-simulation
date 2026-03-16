@@ -1,0 +1,120 @@
+{
+  "_metadata": {
+    "description": "Preprocessed simulation inputs for the Gebirah ABS",
+    "data_sources": [
+      {
+        "name": "Total Air Departures",
+        "source": "CAAS via data.gov.sg",
+        "dataset_id": "d_90089b064caf754498b794466996c4c8",
+        "year": 2024
+      },
+      {
+        "name": "Air Departures by Country",
+        "source": "CAAS via data.gov.sg",
+        "dataset_id": "d_ba460709b5b56388bf8a5bcba84e0bfb",
+        "year": 2024
+      },
+      {
+        "name": "Monthly Air Departures",
+        "source": "CAAS via data.gov.sg",
+        "dataset_id": "d_98e2567a033e812081b78aabe250fc13",
+        "year": 2024
+      }
+    ],
+    "report_reference": "Oral Report 1 - Midterms (60.008 Systems Design Studio)"
+  },
+  "traveller_data": {
+    "total_annual_departures": 8839546,
+    "daily_average_departures": 24218,
+    "country_passengers": {
+      "Indonesia": 3603194,
+      "Philippines": 1511701,
+      "Vietnam": 1155207,
+      "Cambodia": 250000,
+      "Myanmar": 150000
+    },
+    "caas_destination_weights": {
+      "Indonesia": 0.5402,
+      "Philippines": 0.2266,
+      "Vietnam": 0.1732,
+      "Cambodia": 0.0375,
+      "Myanmar": 0.0225
+    },
+    "monthly_passengers": {
+      "Jan": 679117,
+      "Feb": 674023,
+      "Mar": 719067,
+      "Apr": 733652,
+      "May": 716098,
+      "Jun": 784996,
+      "Jul": 797893,
+      "Aug": 769453,
+      "Sep": 700297,
+      "Oct": 745489,
+      "Nov": 760233,
+      "Dec": 839228
+    },
+    "seasonal_factors": {
+      "Jan": 0.914,
+      "Feb": 0.907,
+      "Mar": 0.967,
+      "Apr": 0.987,
+      "May": 0.963,
+      "Jun": 1.056,
+      "Jul": 1.073,
+      "Aug": 1.035,
+      "Sep": 0.942,
+      "Oct": 1.003,
+      "Nov": 1.023,
+      "Dec": 1.129
+    },
+    "notes": {
+      "Myanmar": "Not individually listed in CAAS data; estimated from 'Other Countries In South East Asia' (539,846 total) based on typical SG-Myanmar flight volumes",
+      "Cambodia": "Not individually listed in CAAS data; estimated from 'Other Countries In South East Asia' (539,846 total) based on typical SG-Cambodia flight volumes"
+    }
+  },
+  "request_data": {
+    "hdi_request_weights": {
+      "Myanmar": 0.35,
+      "Cambodia": 0.25,
+      "Indonesia": 0.2,
+      "Philippines": 0.15,
+      "Vietnam": 0.05
+    },
+    "requests_per_day": 10,
+    "poisson_lambda_per_hour": 0.4167
+  },
+  "distribution_parameters": {
+    "personal_luggage_gamma": {
+      "mean_kg": 15.9,
+      "shape": 5.0,
+      "scale": 3.18
+    },
+    "baggage": {
+      "iata_max_kg": 32,
+      "safety_buffer_kg": 2
+    },
+    "request_weight": {
+      "min_kg": 1,
+      "max_kg": 15
+    },
+    "urgency_distribution": {
+      "High": 0.2,
+      "Medium": 0.5,
+      "Low": 0.3
+    },
+    "volunteer_reliability": {
+      "min": 0.7,
+      "max": 0.95
+    }
+  },
+  "willingness_scenarios": {
+    "conservative": 0.03,
+    "likely": 0.06,
+    "optimistic": 0.1
+  },
+  "simulation_parameters": {
+    "duration_days": 30,
+    "time_step": "daily"
+  }
+}

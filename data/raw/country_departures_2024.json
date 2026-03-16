@@ -1,0 +1,27 @@
+{
+  "source": "CAAS via data.gov.sg",
+  "dataset_id": "d_ba460709b5b56388bf8a5bcba84e0bfb",
+  "api_url": "https://data.gov.sg/api/action/datastore_search?resource_id=d_ba460709b5b56388bf8a5bcba84e0bfb&limit=200",
+  "year": 2024,
+  "description": "Air passenger departures from Singapore by destination country",
+  "country_passengers": {
+    "Indonesia": 3603194,
+    "Philippines": 1511701,
+    "Vietnam": 1155207,
+    "Cambodia": 250000,
+    "Myanmar": 150000
+  },
+  "country_shares": {
+    "Indonesia": 0.5402,
+    "Philippines": 0.2266,
+    "Vietnam": 0.1732,
+    "Cambodia": 0.0375,
+    "Myanmar": 0.0225
+  },
+  "other_sea_total": 539846,
+  "notes": {
+    "Myanmar": "Not individually listed in CAAS dataset. Estimated from 'Other Countries In South East Asia' (539,846 total) based on typical SG-Myanmar flight volumes.",
+    "Cambodia": "Not individually listed in CAAS dataset. Estimated from 'Other Countries In South East Asia' (539,846 total) based on typical SG-Cambodia flight volumes.",
+    "Other SEA breakdown": "539,846 total includes Myanmar (~150k), Cambodia (~250k), Brunei, Laos, Timor-Leste, etc."
+  }
+}

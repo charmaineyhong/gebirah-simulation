@@ -1,0 +1,9 @@
+{
+  "source": "CAAS via data.gov.sg",
+  "dataset_id": "d_90089b064caf754498b794466996c4c8",
+  "api_url": "https://data.gov.sg/api/action/datastore_search?resource_id=d_90089b064caf754498b794466996c4c8&limit=100",
+  "year": 2024,
+  "total_air_departures": 8839546,
+  "daily_average": 24218,
+  "fetched_from_api": false
+}

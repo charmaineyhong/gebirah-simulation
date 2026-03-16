@@ -1,0 +1,37 @@
+{
+  "source": "CAAS via data.gov.sg",
+  "dataset_id": "d_98e2567a033e812081b78aabe250fc13",
+  "api_url": "https://data.gov.sg/api/action/datastore_search?resource_id=d_98e2567a033e812081b78aabe250fc13&limit=200",
+  "year": 2024,
+  "description": "Monthly air passenger departures from Singapore",
+  "monthly_passengers": {
+    "Jan": 679117,
+    "Feb": 674023,
+    "Mar": 719067,
+    "Apr": 733652,
+    "May": 716098,
+    "Jun": 784996,
+    "Jul": 797893,
+    "Aug": 769453,
+    "Sep": 700297,
+    "Oct": 745489,
+    "Nov": 760233,
+    "Dec": 839228
+  },
+  "annual_total": 8919546,
+  "monthly_average": 743296,
+  "seasonal_factors": {
+    "Jan": 0.914,
+    "Feb": 0.907,
+    "Mar": 0.967,
+    "Apr": 0.987,
+    "May": 0.963,
+    "Jun": 1.056,
+    "Jul": 1.073,
+    "Aug": 1.035,
+    "Sep": 0.942,
+    "Oct": 1.003,
+    "Nov": 1.023,
+    "Dec": 1.129
+  }
+}
