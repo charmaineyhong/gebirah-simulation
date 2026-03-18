@@ -46,23 +46,25 @@ export default function FulfillmentChart({ results }: Props) {
 
   return (
     <div className="panel p-5">
-      <p className="section-label mb-4">Fulfillment rate</p>
+      <p className="section-label mb-1">Overall Fulfillment Rate (delivered / requested)</p>
+      <p className="text-[0.6rem] text-zinc-600 mb-4">Error bars show 95% confidence interval across {results[0]?.numRuns ?? "N"} Monte Carlo runs</p>
       <ResponsiveContainer width="100%" height={280}>
         <BarChart data={data} margin={{ top: 8, right: 24, left: 0, bottom: 4 }} barSize={48}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(63,63,70,0.3)" vertical={false} />
           <XAxis dataKey="algorithm" axisLine={false} tickLine={false} />
           <YAxis domain={[0, 100]} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}%`} />
           <Tooltip
-            formatter={(value) => [`${Number(value).toFixed(1)}%`, "Rate"]}
+            formatter={(value) => [`${Number(value).toFixed(1)}%`, "Fulfillment Rate"]}
             contentStyle={{
               backgroundColor: "#1a1a1f",
               borderRadius: 8,
               border: "1px solid rgba(63,63,70,0.5)",
-              color: "#d4d4d8",
+              color: "#f4f4f5",
               fontFamily: "JetBrains Mono, monospace",
               fontSize: 12,
             }}
-            labelStyle={{ color: "#71717a", fontFamily: "Sora, sans-serif" }}
+            labelStyle={{ color: "#e4e4e7", fontFamily: "Sora, sans-serif", fontWeight: 600 }}
+            itemStyle={{ color: "#f4f4f5" }}
             cursor={{ fill: "rgba(6, 182, 212, 0.05)" }}
           />
           <Bar dataKey="value" radius={[4, 4, 0, 0]}>

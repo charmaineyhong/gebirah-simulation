@@ -11,16 +11,17 @@ import {
 } from "../config/constants";
 
 interface Props {
-  onRun: (scenario: WillingnessScenario, numRuns: number, startMonth: string, platformAdoptionRate: number) => void;
-  onWatchLive: (scenario: WillingnessScenario, startMonth: string, platformAdoptionRate: number) => void;
+  onRun: (scenario: WillingnessScenario, numRuns: number, startMonth: string, platformAdoptionRate: number, requestsPerDay: number, volunteersSingapore: number) => void;
   isRunning: boolean;
 }
 
-export default function SimulationSetup({ onRun, onWatchLive, isRunning }: Props) {
+export default function SimulationSetup({ onRun, isRunning }: Props) {
   const [scenario, setScenario] = useState<WillingnessScenario>("likely");
   const [numRuns, setNumRuns] = useState(20);
   const [startMonth, setStartMonth] = useState("Jun");
   const [adoptionRate, setAdoptionRate] = useState(0.01);
+  const [requestsPerDay, setRequestsPerDay] = useState(15);
+  const [volunteersSingapore, setVolunteersSingapore] = useState(5);
 
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
                    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -37,7 +38,7 @@ export default function SimulationSetup({ onRun, onWatchLive, isRunning }: Props
     Myanmar: Math.round(DAILY_TARGET_DEPARTURES * CAAS_DESTINATION_WEIGHTS.Myanmar * effectiveRate * 10) / 10,
   };
 
-  const supplyStatus = expectedTravellersPerDay < 15;
+  const supplyStatus = expectedTravellersPerDay < requestsPerDay;
 
   return (
     <div className="panel p-7">
@@ -127,6 +128,49 @@ export default function SimulationSetup({ onRun, onWatchLive, isRunning }: Props
             Seasonal scaling factor for traveller volume
           </p>
         </div>
+        {/* Requests Per Day */}
+        <div>
+          <label className="block text-xs font-medium text-zinc-400 mb-1.5">
+            Donation Requests / Day{" "}
+            <span className="font-mono text-accent">{requestsPerDay}</span>
+          </label>
+          <input
+            type="range"
+            min="5"
+            max="50"
+            step="1"
+            value={requestsPerDay}
+            onChange={(e) => setRequestsPerDay(Number(e.target.value))}
+            disabled={isRunning}
+            className="w-full mt-2 disabled:opacity-40 disabled:cursor-not-allowed"
+          />
+          <div className="flex justify-between text-[0.65rem] text-zinc-600 mt-1">
+            <span>5</span>
+            <span>50</span>
+          </div>
+        </div>
+
+        {/* Volunteers Singapore */}
+        <div>
+          <label className="block text-xs font-medium text-zinc-400 mb-1.5">
+            Volunteers at Changi{" "}
+            <span className="font-mono text-accent">{volunteersSingapore}</span>
+          </label>
+          <input
+            type="range"
+            min="1"
+            max="20"
+            step="1"
+            value={volunteersSingapore}
+            onChange={(e) => setVolunteersSingapore(Number(e.target.value))}
+            disabled={isRunning}
+            className="w-full mt-2 disabled:opacity-40 disabled:cursor-not-allowed"
+          />
+          <div className="flex justify-between text-[0.65rem] text-zinc-600 mt-1">
+            <span>1</span>
+            <span>20</span>
+          </div>
+        </div>
       </div>
 
       {/* Live Preview: Traveller Funnel */}
@@ -175,7 +219,7 @@ export default function SimulationSetup({ onRun, onWatchLive, isRunning }: Props
       <div className="mt-6 space-y-4">
         <div className="flex items-center gap-4">
           <button
-            onClick={() => onRun(scenario, numRuns, startMonth, adoptionRate)}
+            onClick={() => onRun(scenario, numRuns, startMonth, adoptionRate, requestsPerDay, volunteersSingapore)}
             disabled={isRunning}
             className="px-7 py-2.5 bg-accent text-zinc-950 text-sm font-semibold rounded-lg hover:bg-accent-bright disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
@@ -196,22 +240,6 @@ export default function SimulationSetup({ onRun, onWatchLive, isRunning }: Props
           </span>
         </div>
 
-        {/* Compare Live section */}
-        <div className="flex items-center gap-3 pt-2 border-t border-edge">
-          <button
-            onClick={() => onWatchLive(scenario, startMonth, adoptionRate)}
-            disabled={isRunning}
-            className="px-5 py-2 rounded-lg text-sm font-medium text-accent bg-accent/10 border border-accent/25 hover:bg-accent/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-          >
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M8 5v14l11-7z" />
-            </svg>
-            Compare Algorithms Live
-          </button>
-          <span className="text-[0.65rem] text-zinc-600">
-            All 3 algorithms side-by-side, same scenario
-          </span>
-        </div>
       </div>
     </div>
   );

@@ -145,6 +145,8 @@ export interface SimulationConfig {
   numRuns: number;
   simulationDays: number;
   startMonth: string; // for seasonal factor lookup
+  requestsPerDay: number; // avg donation requests per day (Poisson lambda)
+  volunteersSingapore: number; // number of volunteers at Changi for handovers
 }
 
 // ============================================================

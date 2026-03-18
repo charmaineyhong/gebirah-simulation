@@ -178,6 +178,8 @@ export default function LiveVisualization({ vizDataSet, onStop }: Props) {
               algorithmLabel={cfg.label}
               algoColor={cfg.color}
               algoBorderColor={cfg.border}
+              isFinished={currentDay >= totalDays}
+              speed={speed}
             />
           );
         })}

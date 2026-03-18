@@ -36,6 +36,12 @@ export default function ComparisonBar({ vizDataSet, currentDay }: Props) {
           </span>
         )}
       </div>
+      {/* Column headers */}
+      <div className="flex items-center gap-3 mb-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-600">
+        <div className="w-28 shrink-0">Algorithm</div>
+        <div className="flex-1">Delivered / Requested</div>
+        <div className="w-14 text-right">Rate</div>
+      </div>
       <div className="space-y-2">
         {rates.map(({ algo, rate, fulfilled, total }) => {
           const cfg = ALGO_CONFIG[algo] ?? { label: algo, color: "text-zinc-400", bg: "bg-zinc-400", border: "border-zinc-500/30" };

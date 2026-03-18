@@ -52,7 +52,9 @@ export function runExperiment(
   numRuns: number = 20,
   startMonth: string = "Jun",
   platformAdoptionRate: number = 0.01,
-  onProgress?: (progress: ExperimentProgress) => void
+  onProgress?: (progress: ExperimentProgress) => void,
+  requestsPerDay: number = 15,
+  volunteersSingapore: number = 5
 ): ScenarioOutput {
   const config: SimulationConfig = {
     willingnessScenario: scenario,
@@ -60,6 +62,8 @@ export function runExperiment(
     numRuns,
     simulationDays: SIMULATION_DAYS,
     startMonth,
+    requestsPerDay,
+    volunteersSingapore,
   };
 
   const totalSteps = MATCHING_ALGORITHMS.length * numRuns;

@@ -8,6 +8,7 @@ interface Props {
   algoColor: string;
   algoBorderColor: string;
   isFinished: boolean;
+  speed: number;
 }
 
 // --- Mini Flow Diagram ---
@@ -27,11 +28,13 @@ function MiniFlowDiagram({
   agentStates,
   algoColor,
   isFinished,
+  speed,
 }: {
   snapshot: DaySnapshot | null;
   agentStates: AgentStateCounts | null;
   algoColor: string;
   isFinished: boolean;
+  speed: number;
 }) {
   // Convert tailwind text color class to hex for SVG
   const strokeColor =
@@ -57,8 +60,12 @@ function MiniFlowDiagram({
         const pos = COUNTRY_POS[country];
         const cs = agentStates?.byCountry[country];
         const cumFulfilled = cs?.fulfilled ?? 0;
-        const todayDelivered = snapshot?.metrics.byCountry[country]?.fulfilled ?? 0;
-        const inTransit = cs?.inTransit ?? 0;
+
+        // Today's successful dispatches to this country (not cumulative inTransit)
+        const departedWithGoods = new Set(snapshot?.dispatchResult.departedWithGoods ?? []);
+        const dispatchedToday = (snapshot?.matchesMade ?? [])
+          .filter(m => m.destination === country && departedWithGoods.has(m.travellerId))
+          .length;
 
         // Line midpoint for label
         const mx = (SG.x + pos.x) / 2;
@@ -74,12 +81,12 @@ function MiniFlowDiagram({
               x1={SG.x} y1={SG.y + 10}
               x2={pos.x} y2={pos.y - 12}
               stroke="url(#lineGrad)"
-              strokeWidth={inTransit > 0 || todayDelivered > 0 ? "2" : "1"}
-              strokeDasharray={inTransit > 0 ? undefined : "4 3"}
+              strokeWidth={dispatchedToday > 0 ? "2" : "1"}
+              strokeDasharray={dispatchedToday > 0 ? undefined : "4 3"}
             />
 
-            {/* Today's delivery count on line */}
-            {todayDelivered > 0 && (
+            {/* Today's dispatch count on line */}
+            {dispatchedToday > 0 && (
               <>
                 <rect
                   x={mx - 8} y={my - 7}
@@ -93,17 +100,17 @@ function MiniFlowDiagram({
                   fill="#34d399"
                   className="fade-in"
                 >
-                  {todayDelivered}
+                  {dispatchedToday}
                 </text>
               </>
             )}
 
-            {/* In-transit dot animation */}
-            {inTransit > 0 && (
+            {/* Dispatch dot animation — only for today's new dispatches */}
+            {dispatchedToday > 0 && !isFinished && (
               <circle r="3" fill={strokeColor} opacity="0.7">
                 <animateMotion
-                  dur={`${1.2}s`}
-                  repeatCount="indefinite"
+                  dur={`${1.5 / speed}s`}
+                  repeatCount="1"
                   path={`M${SG.x},${SG.y + 10} L${pos.x},${pos.y - 12}`}
                 />
               </circle>
@@ -189,6 +196,8 @@ export default function FlowMap({
   algorithmLabel,
   algoColor,
   algoBorderColor,
+  isFinished,
+  speed,
 }: Props) {
   const r = agentStates?.requests ?? { waiting: 0, matched: 0, inTransit: 0, fulfilled: 0, total: 0 };
 
@@ -218,6 +227,8 @@ export default function FlowMap({
         snapshot={snapshot}
         agentStates={agentStates}
         algoColor={algoColor}
+        isFinished={isFinished}
+        speed={speed}
       />
 
       {/* Pipeline stages */}

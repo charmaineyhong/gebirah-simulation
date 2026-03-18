@@ -113,7 +113,7 @@ export function runSnapshotSimulation(
 
   const allRequests: DonationRequest[] = [];
   const allTravellers: Traveller[] = [];
-  const volunteers: Volunteer[] = generateVolunteerPool(rng);
+  const volunteers: Volunteer[] = generateVolunteerPool(rng, config.volunteersSingapore);
 
   const snapshots: DaySnapshot[] = [];
   let cumulativeFulfilled = 0;
@@ -122,7 +122,7 @@ export function runSnapshotSimulation(
 
   for (let day = 1; day <= config.simulationDays; day++) {
     // --- Step 1: Generate new agents ---
-    const newRequests = generateDonationRequests(rng, day, monthName);
+    const newRequests = generateDonationRequests(rng, day, monthName, config.requestsPerDay);
     const newTravellers = generateTravellers(rng, day, monthName, config.willingnessScenario, config.platformAdoptionRate);
 
     // Deep-copy new agents before they get mutated

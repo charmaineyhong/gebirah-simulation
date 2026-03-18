@@ -73,7 +73,7 @@ export function runSimulation(
   // State: all agents across the simulation
   const allRequests: DonationRequest[] = [];
   const allTravellers: Traveller[] = [];
-  const volunteers: Volunteer[] = generateVolunteerPool(rng);
+  const volunteers: Volunteer[] = generateVolunteerPool(rng, config.volunteersSingapore);
 
   // Daily metrics tracking
   const dailyMetrics: DailyMetrics[] = [];
@@ -87,7 +87,7 @@ export function runSimulation(
   // ========================================
   for (let day = 1; day <= config.simulationDays; day++) {
     // --- Step 1: Generate new agents for today ---
-    const newRequests = generateDonationRequests(rng, day, monthName);
+    const newRequests = generateDonationRequests(rng, day, monthName, config.requestsPerDay);
     const newTravellers = generateTravellers(rng, day, monthName, config.willingnessScenario, config.platformAdoptionRate);
 
     allRequests.push(...newRequests);
