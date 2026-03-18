@@ -1,6 +1,5 @@
 /**
  * Country-Level Results Table
- * Shows per-country metrics for each algorithm
  */
 
 import { COUNTRIES } from "../../config/constants";
@@ -12,82 +11,113 @@ interface Props {
 
 const ALGO_LABELS: Record<string, string> = {
   fifo: "FIFO",
-  priority: "Priority-Based",
-  weightOptimised: "Weight-Optimised",
+  priority: "Priority",
+  weightOptimised: "Weight-Opt",
+};
+
+const ALGO_COLORS: Record<string, string> = {
+  fifo: "#38bdf8",
+  priority: "#fbbf24",
+  weightOptimised: "#fb7185",
 };
 
 export default function CountryTable({ results }: Props) {
   if (results.length === 0) return null;
 
+  // Precompute best rate (highest) and best avg days (lowest) per country
+  const bestByCountry: Record<string, { bestRate: number; bestDays: number }> = {};
+  for (const country of COUNTRIES) {
+    let bestRate = -1;
+    let bestDays = Infinity;
+    for (const r of results) {
+      const d = r.avgSummary.byCountry[country];
+      if (!d) continue;
+      if (d.fulfillmentRate > bestRate) bestRate = d.fulfillmentRate;
+      if (d.avgDeliveryTimeDays < bestDays) bestDays = d.avgDeliveryTimeDays;
+    }
+    bestByCountry[country] = { bestRate, bestDays };
+  }
+
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-800">
-          Per-Country Breakdown
-        </h3>
+    <div className="panel overflow-hidden">
+      <div className="px-5 py-3 border-b border-edge flex items-center justify-between">
+        <p className="section-label">Per-country breakdown</p>
+        <span className="text-[0.6rem] text-zinc-600 font-mono">best in country highlighted</span>
       </div>
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="overflow-x-auto data-table">
+        <table className="min-w-full">
+          <thead>
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Country
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Algorithm
-              </th>
-              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                Requests
-              </th>
-              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                Fulfilled
-              </th>
-              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                Unfulfilled
-              </th>
-              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                Rate
-              </th>
-              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                Avg Days
-              </th>
+              <th className="px-4 py-3 text-left">Country</th>
+              <th className="px-4 py-3 text-left">Algorithm</th>
+              <th className="px-4 py-3 text-right">Requests</th>
+              <th className="px-4 py-3 text-right">Fulfilled</th>
+              <th className="px-4 py-3 text-right">Unfulfilled</th>
+              <th className="px-4 py-3 text-right">Rate</th>
+              <th className="px-4 py-3 text-right">Avg Days</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody>
             {COUNTRIES.map((country, ci) =>
               results.map((r, ri) => {
                 const d = r.avgSummary.byCountry[country];
                 if (!d) return null;
+                const best = bestByCountry[country];
+                const isBestRate = d.fulfillmentRate === best.bestRate;
+                const isBestDays = d.avgDeliveryTimeDays === best.bestDays;
                 return (
                   <tr
                     key={`${country}-${r.algorithm}`}
-                    className={ci % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                    className={ci % 2 === 0 ? "" : "bg-raised/40"}
+                    style={{ borderBottom: ri === results.length - 1 ? "1px solid rgba(63,63,70,0.25)" : undefined }}
                   >
                     {ri === 0 && (
                       <td
                         rowSpan={results.length}
-                        className="px-4 py-2 text-sm font-medium text-gray-900 align-top"
+                        className="px-4 py-2 font-medium text-zinc-200 align-top"
                       >
                         {country}
                       </td>
                     )}
-                    <td className="px-4 py-2 text-sm text-gray-700">
-                      {ALGO_LABELS[r.algorithm]}
+                    <td className="px-4 py-2 text-zinc-400">
+                      <span className="inline-flex items-center gap-1.5">
+                        <span
+                          className="w-1.5 h-1.5 rounded-sm"
+                          style={{ backgroundColor: ALGO_COLORS[r.algorithm] }}
+                        />
+                        {ALGO_LABELS[r.algorithm]}
+                      </span>
                     </td>
-                    <td className="px-4 py-2 text-sm text-gray-700 text-right">
+                    <td className="px-4 py-2 text-right font-mono text-zinc-300">
                       {d.totalRequests}
                     </td>
-                    <td className="px-4 py-2 text-sm text-gray-700 text-right">
+                    <td className="px-4 py-2 text-right font-mono text-zinc-300">
                       {d.fulfilled}
                     </td>
-                    <td className="px-4 py-2 text-sm text-gray-700 text-right">
+                    <td className="px-4 py-2 text-right font-mono text-zinc-300">
                       {d.unfulfilled}
                     </td>
-                    <td className="px-4 py-2 text-sm text-gray-700 text-right">
-                      {(d.fulfillmentRate * 100).toFixed(1)}%
+                    <td className="px-4 py-2 text-right font-mono font-medium">
+                      {isBestRate ? (
+                        <span className="text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded">
+                          {(d.fulfillmentRate * 100).toFixed(1)}%
+                        </span>
+                      ) : (
+                        <span className="text-zinc-400">
+                          {(d.fulfillmentRate * 100).toFixed(1)}%
+                        </span>
+                      )}
                     </td>
-                    <td className="px-4 py-2 text-sm text-gray-700 text-right">
-                      {d.avgDeliveryTimeDays}
+                    <td className="px-4 py-2 text-right font-mono font-medium">
+                      {isBestDays ? (
+                        <span className="text-accent bg-accent/10 px-1.5 py-0.5 rounded">
+                          {d.avgDeliveryTimeDays}
+                        </span>
+                      ) : (
+                        <span className="text-zinc-400">
+                          {d.avgDeliveryTimeDays}
+                        </span>
+                      )}
                     </td>
                   </tr>
                 );
