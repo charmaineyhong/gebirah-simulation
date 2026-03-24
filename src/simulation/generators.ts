@@ -60,12 +60,13 @@ import type { DonationRequest, Traveller, Volunteer } from "./types";
 export function generateDonationRequests(
   rng: SeededRNG,
   day: number,
-  month: string
+  month: string,
+  requestsPerDay: number = REQUESTS_PER_DAY
 ): DonationRequest[] {
   // Step 1: How many requests arrive today?
   // Use Poisson distribution with seasonal adjustment
   const seasonalFactor = SEASONAL_FACTORS[month] ?? 1.0;
-  const adjustedLambda = REQUESTS_PER_DAY * seasonalFactor;
+  const adjustedLambda = requestsPerDay * seasonalFactor;
   const numRequests = samplePoisson(rng, adjustedLambda);
 
   const requests: DonationRequest[] = [];
@@ -195,12 +196,12 @@ export function generateTravellers(
 // then recycled (Idle → Assigned → Delivering → Idle).
 // ============================================================
 
-export function generateVolunteerPool(rng: SeededRNG): Volunteer[] {
+export function generateVolunteerPool(rng: SeededRNG, volunteersSingapore: number = VOLUNTEERS_SINGAPORE): Volunteer[] {
   const volunteers: Volunteer[] = [];
   let index = 0;
 
   // Create volunteers in Singapore (Changi Airport side)
-  for (let i = 0; i < VOLUNTEERS_SINGAPORE; i++) {
+  for (let i = 0; i < volunteersSingapore; i++) {
     volunteers.push({
       id: `vol-sg-${index}`,
       location: "Singapore",

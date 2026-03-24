@@ -1,6 +1,5 @@
 /**
  * Results Page
- * Displays all charts and tables after the simulation completes
  */
 
 import type { ScenarioOutput } from "../simulation/types";
@@ -15,9 +14,9 @@ interface Props {
 }
 
 const SCENARIO_LABELS: Record<string, string> = {
-  conservative: "Conservative (3% willing)",
-  likely: "Likely (6% willing)",
-  optimistic: "Optimistic (10% willing)",
+  conservative: "Conservative 3%",
+  likely: "Likely 6%",
+  optimistic: "Optimistic 10%",
 };
 
 export default function Results({ output }: Props) {
@@ -36,64 +35,71 @@ export default function Results({ output }: Props) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white rounded-lg shadow p-6 flex flex-col md:flex-row md:items-center md:justify-between">
-        <div>
-          <h2 className="text-xl font-semibold text-gray-800">
-            Simulation Results
-          </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            Scenario: {SCENARIO_LABELS[output.scenario]} |{" "}
-            Operational reach: {(output.config.platformAdoptionRate * 100).toFixed(1)}% |{" "}
-            {output.config.numRuns} runs per algorithm |{" "}
-            {output.config.simulationDays} simulated days |{" "}
-            Start month: {output.config.startMonth}
-          </p>
-          <p className="text-xs text-gray-400 mt-1">
-            Generated: {new Date(output.generatedAt).toLocaleString()}
-          </p>
+      <div className="panel p-5">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <p className="section-label mb-2">Results</p>
+            <div className="flex flex-wrap items-center gap-2">
+              {[
+                SCENARIO_LABELS[output.scenario],
+                `${(output.config.platformAdoptionRate * 100).toFixed(1)}% reach`,
+                `${output.config.numRuns} runs`,
+                `${output.config.simulationDays}d`,
+                output.config.startMonth,
+              ].map((tag) => (
+                <span
+                  key={tag}
+                  className="inline-block font-mono text-[0.65rem] text-zinc-400 bg-inset border border-edge px-2 py-0.5 rounded"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+            <p className="text-[0.6rem] text-zinc-600 mt-1.5 font-mono">
+              {new Date(output.generatedAt).toLocaleString()}
+            </p>
+          </div>
+          <button
+            onClick={handleDownload}
+            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-zinc-400 bg-inset border border-edge rounded-lg hover:text-zinc-200 hover:border-edge-strong transition-colors"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Export JSON
+          </button>
         </div>
-        <button
-          onClick={handleDownload}
-          className="mt-4 md:mt-0 px-4 py-2 bg-gray-100 text-gray-700 text-sm rounded-md hover:bg-gray-200 transition-colors border border-gray-300"
-        >
-          Download JSON
-        </button>
       </div>
 
-      {/* Summary Table */}
       <SummaryTable results={output.results} />
 
-      {/* Charts Row 1: Fulfillment + Country */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <FulfillmentChart results={output.results} />
         <CountryBreakdown results={output.results} />
       </div>
 
-      {/* Charts Row 2: Time Series */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <DailyTimeSeries
           results={output.results}
           metric="cumulativeFulfilled"
-          title="Cumulative Requests Fulfilled (Day 1-30)"
+          title="Cumulative Fulfilled"
           yLabel="Count"
         />
         <DailyTimeSeries
           results={output.results}
           metric="backlogSize"
-          title="Backlog Size Over Time (Day 1-30)"
-          yLabel="Waiting Requests"
+          title="Backlog Size"
+          yLabel="Waiting"
         />
       </div>
 
-      {/* Daily fulfillment */}
       <DailyTimeSeries
         results={output.results}
         metric="requestsFulfilledToday"
-        title="Daily Requests Fulfilled (Day 1-30)"
+        title="Daily Fulfilled"
         yLabel="Fulfilled/Day"
       />
 
-      {/* Country Table */}
       <CountryTable results={output.results} />
     </div>
   );
