@@ -97,12 +97,12 @@ function App() {
   }, []);
 
   return (
-    <div className='min-h-screen font-sans'>
+    <div className='min-h-screen font-sans text-zinc-700'>
       {/* Header */}
-      <header className='border-b border-edge'>
+      <header className='border-b border-edge bg-white/70 backdrop-blur-xl'>
         <div className='max-w-6xl mx-auto px-6 py-5 flex items-center justify-between'>
           <div className='flex items-center gap-3.5'>
-            <div className='w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center border border-accent/20'>
+            <div className='w-10 h-10 rounded-xl bg-gradient-to-br from-accent-bright/18 via-white to-accent-dim/15 flex items-center justify-center border border-accent/15 shadow-[0_12px_24px_rgba(49,68,221,0.08)]'>
               <svg
                 className='w-[18px] h-[18px] text-accent'
                 fill='none'
@@ -118,15 +118,15 @@ function App() {
               </svg>
             </div>
             <div>
-              <h1 className='text-[1.05rem] font-semibold text-zinc-100 tracking-tight leading-none'>
+              <h1 className='text-[1.05rem] font-semibold tracking-tight leading-none text-transparent bg-clip-text bg-gradient-to-r from-accent-bright via-accent to-accent-dim'>
                 Project Gebirah
               </h1>
-              <p className='text-[0.7rem] text-zinc-500 mt-1 tracking-wide uppercase'>
+              <p className='text-[0.7rem] text-zinc-500 mt-1 tracking-[0.18em] uppercase'>
                 Humanitarian Donation Delivery Simulation
               </p>
             </div>
           </div>
-          <div className='hidden sm:flex items-center gap-1.5 text-[0.65rem] text-zinc-600 font-mono'>
+          <div className='hidden sm:flex items-center gap-1.5 text-[0.65rem] text-zinc-500 font-mono px-2.5 py-1 rounded-full bg-white/70 border border-edge'>
             <span className='w-1.5 h-1.5 rounded-full bg-accent/60 animate-pulse' />
             SUTD 60.008
           </div>
@@ -143,7 +143,7 @@ function App() {
         {isRunning && !vizData && <SimulationProgress progress={progress} />}
 
         {error && (
-          <div className='panel p-4 border-red-500/30'>
+          <div className='panel p-4 border-red-500/25 bg-red-50/70'>
             <p className='text-red-400 text-sm'>
               <span className='font-mono text-red-500/80 mr-2'>ERR</span>
               {error}
@@ -162,7 +162,7 @@ function App() {
                 <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' />
                 <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z' />
               </svg>
-              <span className='text-sm text-zinc-400'>
+              <span className='text-sm text-zinc-600'>
                 Computing statistical results ({progress?.percentComplete ?? 0}%)...
               </span>
             </div>
@@ -175,34 +175,34 @@ function App() {
           <div className='panel p-7'>
             <p className='section-label mb-5'>How it works</p>
             <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-              {[
+              {[ 
                 {
                   n: "01",
                   title: "Configure",
                   desc: "Set willingness scenario, operational reach, run count, and start month.",
-                  accent: "text-accent border-accent/20",
+                  accent: "text-algo-fifo border-algo-fifo/25",
                 },
                 {
                   n: "02",
                   title: "Simulate",
                   desc: "Engine runs 30 days per algorithm: FIFO, Priority-Based, and Weight-Optimised.",
-                  accent: "text-amber-400 border-amber-400/20",
+                  accent: "text-algo-priority border-algo-priority/25",
                 },
                 {
                   n: "03",
                   title: "Compare",
                   desc: "Charts and tables for fulfillment rates, delivery times, and country breakdowns.",
-                  accent: "text-rose-400 border-rose-400/20",
+                  accent: "text-algo-weight border-algo-weight/25",
                 },
               ].map((s) => (
                 <div
                   key={s.n}
                   className={`border-l-2 ${s.accent} pl-4 py-1`}
                 >
-                  <span className='font-mono text-xs text-zinc-600'>
+                  <span className='font-mono text-xs text-zinc-500'>
                     {s.n}
                   </span>
-                  <h4 className='text-sm font-semibold text-zinc-200 mt-1'>
+                  <h4 className='text-sm font-semibold text-zinc-800 mt-1'>
                     {s.title}
                   </h4>
                   <p className='text-xs text-zinc-500 mt-1 leading-relaxed'>
@@ -216,8 +216,8 @@ function App() {
       </main>
 
       {/* Footer */}
-      <footer className='border-t border-edge mt-12'>
-        <div className='max-w-6xl mx-auto px-6 py-5 flex items-center justify-between text-[0.65rem] text-zinc-600'>
+      <footer className='border-t border-edge mt-12 bg-white/55 backdrop-blur-xl'>
+        <div className='max-w-6xl mx-auto px-6 py-5 flex items-center justify-between text-[0.65rem] text-zinc-500'>
           <span>DAI x Gebirah</span>
           <span className='font-mono'>60.008 Systems Design Studio | SUTD</span>
         </div>

@@ -1,37 +1,35 @@
 import { useEffect, useRef } from "react";
-import type { DaySnapshot } from "../../simulation/snapshotEngine";
 import { COUNTRIES } from "../../config/constants";
+import type { DaySnapshot } from "../../simulation/snapshotEngine";
 
 interface Props {
   snapshots: DaySnapshot[];
   currentDay: number;
 }
 
-function summarizeDay(snap: DaySnapshot): string[] {
+function summarizeDay(snapshot: DaySnapshot): string[] {
   const lines: string[] = [];
 
-  // New requests (shared across all algorithms — same seed)
-  if (snap.newRequests.length > 0) {
-    const byCountry = COUNTRIES
-      .map(c => {
-        const count = snap.newRequests.filter(r => r.destination === c).length;
-        return count > 0 ? `${count} ${c}` : null;
-      })
+  if (snapshot.newRequests.length > 0) {
+    const byCountry = COUNTRIES.map((country) => {
+      const count = snapshot.newRequests.filter((request) => request.destination === country).length;
+      return count > 0 ? `${count} ${country}` : null;
+    })
       .filter(Boolean)
       .join(", ");
-    lines.push(`${snap.newRequests.length} new requests (${byCountry})`);
+
+    lines.push(`${snapshot.newRequests.length} new requests (${byCountry})`);
   }
 
-  // New travellers (shared across all algorithms — same seed)
-  if (snap.newTravellers.length > 0) {
-    const destinations = COUNTRIES
-      .map(c => {
-        const count = snap.newTravellers.filter(t => t.destination === c).length;
-        return count > 0 ? `${count} ${c}` : null;
-      })
+  if (snapshot.newTravellers.length > 0) {
+    const destinations = COUNTRIES.map((country) => {
+      const count = snapshot.newTravellers.filter((traveller) => traveller.destination === country).length;
+      return count > 0 ? `${count} ${country}` : null;
+    })
       .filter(Boolean)
       .join(", ");
-    lines.push(`${snap.newTravellers.length} travellers at Changi (${destinations})`);
+
+    lines.push(`${snapshot.newTravellers.length} travellers at Changi (${destinations})`);
   }
 
   if (lines.length === 0) {
@@ -54,22 +52,25 @@ export default function EventLog({ snapshots, currentDay }: Props) {
 
   return (
     <div className="panel p-4 flex flex-col" style={{ maxHeight: "280px" }}>
-      <p className="text-[0.6rem] uppercase tracking-widest text-zinc-600 font-semibold mb-2">
+      <p className="text-[0.6rem] uppercase tracking-widest text-zinc-500 font-semibold mb-2">
         Shared Events (same seed)
       </p>
+
       <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-2 text-xs scrollbar-thin">
         {visibleSnapshots.length === 0 && (
-          <p className="text-zinc-600 italic">Waiting to start...</p>
+          <p className="text-zinc-500 italic">Waiting to start...</p>
         )}
-        {visibleSnapshots.map((snap) => {
-          const lines = summarizeDay(snap);
+
+        {visibleSnapshots.map((snapshot) => {
+          const lines = summarizeDay(snapshot);
+
           return (
-            <div key={snap.day} className="border-l-2 border-accent/30 pl-2.5 py-0.5">
+            <div key={snapshot.day} className="border-l-2 border-accent/30 pl-2.5 py-0.5">
               <span className="font-mono font-semibold text-accent">
-                Day {snap.day}
+                Day {snapshot.day}
               </span>
-              {lines.map((line, i) => (
-                <p key={i} className="text-zinc-400 leading-relaxed">
+              {lines.map((line, index) => (
+                <p key={index} className="text-zinc-600 leading-relaxed">
                   {line}
                 </p>
               ))}

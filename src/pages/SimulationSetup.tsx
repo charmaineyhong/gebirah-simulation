@@ -47,14 +47,14 @@ export default function SimulationSetup({ onRun, isRunning }: Props) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* Willingness Scenario */}
         <div>
-          <label className="block text-xs font-medium text-zinc-400 mb-1.5">
+          <label className="block text-xs font-medium text-zinc-600 mb-1.5">
             Willingness Scenario
           </label>
           <select
             value={scenario}
             onChange={(e) => setScenario(e.target.value as WillingnessScenario)}
             disabled={isRunning}
-            className="w-full border border-edge rounded-lg px-3 py-2 text-sm bg-inset text-zinc-200 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 disabled:opacity-40 transition-colors"
+            className="w-full border border-edge rounded-lg px-3 py-2 text-sm bg-inset text-zinc-800 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 disabled:opacity-40 transition-colors"
           >
             <option value="conservative">Conservative (3% willing)</option>
             <option value="likely">Likely (6% willing)</option>
@@ -67,7 +67,7 @@ export default function SimulationSetup({ onRun, isRunning }: Props) {
 
         {/* Operational Reach Rate */}
         <div>
-          <label className="block text-xs font-medium text-zinc-400 mb-1.5">
+          <label className="block text-xs font-medium text-zinc-600 mb-1.5">
             Operational Reach{" "}
             <span className="font-mono text-accent">{(adoptionRate * 100).toFixed(1)}%</span>
             {adoptionRate >= 0.059 && <span className="text-emerald-400 ml-1 font-normal text-[0.65rem]">MAX</span>}
@@ -90,14 +90,14 @@ export default function SimulationSetup({ onRun, isRunning }: Props) {
 
         {/* Number of Runs */}
         <div>
-          <label className="block text-xs font-medium text-zinc-400 mb-1.5">
+          <label className="block text-xs font-medium text-zinc-600 mb-1.5">
             Monte Carlo Runs
           </label>
           <select
             value={numRuns}
             onChange={(e) => setNumRuns(Number(e.target.value))}
             disabled={isRunning}
-            className="w-full border border-edge rounded-lg px-3 py-2 text-sm bg-inset text-zinc-200 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 disabled:opacity-40 transition-colors"
+            className="w-full border border-edge rounded-lg px-3 py-2 text-sm bg-inset text-zinc-800 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 disabled:opacity-40 transition-colors"
           >
             <option value={5}>5 runs (fast)</option>
             <option value={10}>10 runs</option>
@@ -111,14 +111,14 @@ export default function SimulationSetup({ onRun, isRunning }: Props) {
 
         {/* Start Month */}
         <div>
-          <label className="block text-xs font-medium text-zinc-400 mb-1.5">
+          <label className="block text-xs font-medium text-zinc-600 mb-1.5">
             Start Month
           </label>
           <select
             value={startMonth}
             onChange={(e) => setStartMonth(e.target.value)}
             disabled={isRunning}
-            className="w-full border border-edge rounded-lg px-3 py-2 text-sm bg-inset text-zinc-200 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 disabled:opacity-40 transition-colors"
+            className="w-full border border-edge rounded-lg px-3 py-2 text-sm bg-inset text-zinc-800 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 disabled:opacity-40 transition-colors"
           >
             {months.map((m) => (
               <option key={m} value={m}>{m}</option>
@@ -130,7 +130,7 @@ export default function SimulationSetup({ onRun, isRunning }: Props) {
         </div>
         {/* Requests Per Day */}
         <div>
-          <label className="block text-xs font-medium text-zinc-400 mb-1.5">
+          <label className="block text-xs font-medium text-zinc-600 mb-1.5">
             Donation Requests / Day{" "}
             <span className="font-mono text-accent">{requestsPerDay}</span>
           </label>
@@ -152,7 +152,7 @@ export default function SimulationSetup({ onRun, isRunning }: Props) {
 
         {/* Volunteers Singapore */}
         <div>
-          <label className="block text-xs font-medium text-zinc-400 mb-1.5">
+          <label className="block text-xs font-medium text-zinc-600 mb-1.5">
             Volunteers at Changi{" "}
             <span className="font-mono text-accent">{volunteersSingapore}</span>
           </label>
@@ -174,29 +174,29 @@ export default function SimulationSetup({ onRun, isRunning }: Props) {
       </div>
 
       {/* Live Preview: Traveller Funnel */}
-      <div className="mt-6 rounded-lg bg-inset border border-edge overflow-hidden">
+      <div className="mt-6 rounded-[1rem] bg-gradient-to-br from-white/80 to-inset border border-edge overflow-hidden">
         <div className="px-4 py-2.5 border-b border-edge flex items-center justify-between">
-          <p className="section-label">Traveller funnel — Changi Airport</p>
-          <span className={`text-[0.65rem] font-mono font-medium ${supplyStatus ? "text-amber-400" : "text-emerald-400"}`}>
+          <p className="section-label">Traveller funnel - Changi Airport</p>
+          <span className={`text-[0.65rem] font-mono font-medium ${supplyStatus ? "text-algo-weight" : "text-algo-fifo"}`}>
             {supplyStatus ? "UNDERSUPPLY" : "SUPPLY OK"}
           </span>
         </div>
         <div className="p-4 space-y-2 text-sm">
-          <div className="flex justify-between items-center text-zinc-500">
+          <div className="flex justify-between items-center text-zinc-600">
             <span>Daily departures</span>
-            <span className="font-mono text-zinc-300">24,218</span>
+            <span className="font-mono text-zinc-800">24,218</span>
           </div>
-          <div className="flex justify-between items-center text-zinc-500">
+          <div className="flex justify-between items-center text-zinc-600">
             <span>To 5 target countries</span>
-            <span className="font-mono text-zinc-300">{DAILY_TARGET_DEPARTURES.toLocaleString()}</span>
+            <span className="font-mono text-zinc-800">{DAILY_TARGET_DEPARTURES.toLocaleString()}</span>
           </div>
           <div className="h-px bg-edge my-1" />
           <div className="flex justify-between items-center">
-            <span className="text-zinc-500">
+            <span className="text-zinc-600">
               {(willingnessRate * 100).toFixed(0)}% willing &times; {(adoptionRate * 100).toFixed(1)}% reach
             </span>
             <span className="font-mono font-semibold text-accent text-base">
-              {expectedTravellersPerDay}<span className="text-xs text-zinc-500 font-normal ml-1">/day</span>
+              {expectedTravellersPerDay}<span className="text-xs text-zinc-600 font-normal ml-1">/day</span>
             </span>
           </div>
         </div>
@@ -209,7 +209,7 @@ export default function SimulationSetup({ onRun, isRunning }: Props) {
               className={`py-3 px-2 text-center ${i < 4 ? "border-r border-edge" : ""}`}
             >
               <div className="text-[0.65rem] text-zinc-600 font-medium">{country}</div>
-              <div className="font-mono text-sm font-semibold text-zinc-200 mt-0.5">{count}</div>
+              <div className="font-mono text-sm font-semibold text-zinc-800 mt-0.5">{count}</div>
             </div>
           ))}
         </div>
@@ -221,7 +221,7 @@ export default function SimulationSetup({ onRun, isRunning }: Props) {
           <button
             onClick={() => onRun(scenario, numRuns, startMonth, adoptionRate, requestsPerDay, volunteersSingapore)}
             disabled={isRunning}
-            className="px-7 py-2.5 bg-accent text-zinc-950 text-sm font-semibold rounded-lg hover:bg-accent-bright disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="px-7 py-2.5 bg-gradient-to-r from-accent via-accent-dim to-accent-bright text-white text-sm font-semibold rounded-xl shadow-[0_14px_28px_rgba(49,68,221,0.18)] hover:brightness-105 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
           >
             {isRunning ? (
               <span className="flex items-center gap-2">
@@ -235,8 +235,8 @@ export default function SimulationSetup({ onRun, isRunning }: Props) {
               "Run Simulation"
             )}
           </button>
-          <span className="text-[0.65rem] text-zinc-600">
-            3 algorithms &times; {numRuns} runs &times; 30 days
+          <span className="text-[0.65rem] text-zinc-500">
+            3 algorithms x {numRuns} runs x 30 days
           </span>
         </div>
 

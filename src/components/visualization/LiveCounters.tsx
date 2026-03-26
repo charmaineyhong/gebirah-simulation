@@ -24,7 +24,7 @@ function CounterCard({ label, value, color, icon }: CounterCardProps) {
           {label}
         </span>
       </div>
-      <div className="text-xl font-bold font-mono text-slate-100 transition-all duration-500">
+      <div className="text-xl font-bold font-mono text-zinc-800 transition-all duration-500">
         {value}
       </div>
     </div>
@@ -38,7 +38,7 @@ export default function LiveCounters({ agentStates, noShows, matchesToday }: Pro
     {
       label: "Total Requests",
       value: r.total,
-      color: "bg-blue-500/15 text-blue-400",
+      color: "bg-algo-fifo/12 text-algo-fifo",
       icon: (
         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -48,7 +48,7 @@ export default function LiveCounters({ agentStates, noShows, matchesToday }: Pro
     {
       label: "Waiting",
       value: r.waiting,
-      color: "bg-amber-500/15 text-amber-400",
+      color: "bg-accent/10 text-accent",
       icon: (
         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -58,7 +58,7 @@ export default function LiveCounters({ agentStates, noShows, matchesToday }: Pro
     {
       label: "In Transit",
       value: r.inTransit,
-      color: "bg-violet-500/15 text-violet-400",
+      color: "bg-algo-weight/10 text-algo-weight",
       icon: (
         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
@@ -68,7 +68,7 @@ export default function LiveCounters({ agentStates, noShows, matchesToday }: Pro
     {
       label: "Fulfilled",
       value: r.fulfilled,
-      color: "bg-emerald-500/15 text-emerald-400",
+      color: "bg-algo-fifo/10 text-algo-fifo",
       icon: (
         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -78,7 +78,7 @@ export default function LiveCounters({ agentStates, noShows, matchesToday }: Pro
     {
       label: "Matches Today",
       value: matchesToday,
-      color: "bg-brand-500/15 text-brand-400",
+      color: "bg-brand-500/12 text-brand-500",
       icon: (
         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
