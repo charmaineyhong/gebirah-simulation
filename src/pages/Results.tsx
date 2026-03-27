@@ -8,6 +8,7 @@ import DailyTimeSeries from "../components/charts/DailyTimeSeries";
 import CountryBreakdown from "../components/charts/CountryBreakdown";
 import SummaryTable from "../components/tables/SummaryTable";
 import CountryTable from "../components/tables/CountryTable";
+import InsightsPanel from "../components/insights/InsightsPanel";
 
 interface Props {
   output: ScenarioOutput;
@@ -101,6 +102,8 @@ export default function Results({ output }: Props) {
       />
 
       <CountryTable results={output.results} />
+
+      <InsightsPanel output={output} />
     </div>
   );
 }
