@@ -29,7 +29,7 @@ export default function PlaybackControls({
       {/* Progress bar */}
       <div className="mb-3">
         <div className="flex items-center justify-between mb-1.5">
-          <span className="text-xs font-medium text-slate-400">
+          <span className="text-xs font-medium text-slate-500">
             Day {currentDay} / {totalDays}
           </span>
           <span className="text-xs font-mono text-slate-500">
@@ -71,8 +71,8 @@ export default function PlaybackControls({
               onClick={() => onSpeedChange(s)}
               className={`px-2 py-1 rounded text-xs font-mono font-medium transition-colors ${
                 speed === s
-                  ? "bg-brand-500/20 text-brand-300 border border-brand-500/30"
-                  : "text-slate-500 hover:text-slate-300 border border-transparent"
+                  ? "bg-brand-500/20 text-brand-500 border border-brand-500/30"
+                  : "text-slate-500 hover:text-zinc-800 border border-transparent"
               }`}
             >
               {s}x

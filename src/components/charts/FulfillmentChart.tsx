@@ -3,75 +3,82 @@
  */
 
 import {
-  BarChart,
   Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  ErrorBar,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  ErrorBar,
-  Cell,
 } from "recharts";
+import {
+  ALGORITHM_THEMES,
+  CHART_CURSOR_FILL,
+  CHART_GRID,
+  CHART_TOOLTIP_ITEM_STYLE,
+  CHART_TOOLTIP_LABEL_STYLE,
+  CHART_TOOLTIP_STYLE,
+} from "../../config/theme";
 import type { ExperimentResult } from "../../simulation/types";
 
 interface Props {
   results: ExperimentResult[];
 }
 
-const ALGO_LABELS: Record<string, string> = {
-  fifo: "FIFO",
-  priority: "Priority",
-  weightOptimised: "Weight-Opt",
-};
-
-const ALGO_COLORS: Record<string, string> = {
-  fifo: "#38bdf8",
-  priority: "#fbbf24",
-  weightOptimised: "#fb7185",
-};
-
 export default function FulfillmentChart({ results }: Props) {
-  const data = results.map((r) => ({
-    algorithm: ALGO_LABELS[r.algorithm] || r.algorithm,
-    algoKey: r.algorithm,
-    value: Math.round(r.avgSummary.fulfillmentRate * 10000) / 100,
+  const data = results.map((result) => ({
+    algorithm: ALGORITHM_THEMES[result.algorithm].label,
+    algoKey: result.algorithm,
+    value: Math.round(result.avgSummary.fulfillmentRate * 10000) / 100,
     ciLower:
-      Math.round(r.avgSummary.fulfillmentRate * 10000) / 100 -
-      Math.round(r.confidenceIntervals.fulfillmentRate.lower * 10000) / 100,
+      Math.round(result.avgSummary.fulfillmentRate * 10000) / 100 -
+      Math.round(result.confidenceIntervals.fulfillmentRate.lower * 10000) / 100,
     ciUpper:
-      Math.round(r.confidenceIntervals.fulfillmentRate.upper * 10000) / 100 -
-      Math.round(r.avgSummary.fulfillmentRate * 10000) / 100,
+      Math.round(result.confidenceIntervals.fulfillmentRate.upper * 10000) / 100 -
+      Math.round(result.avgSummary.fulfillmentRate * 10000) / 100,
   }));
 
   return (
     <div className="panel p-5">
-      <p className="section-label mb-1">Overall Fulfillment Rate (delivered / requested)</p>
-      <p className="text-[0.6rem] text-zinc-600 mb-4">Error bars show 95% confidence interval across {results[0]?.numRuns ?? "N"} Monte Carlo runs</p>
+      <p className="section-label mb-1">
+        Overall Fulfillment Rate (delivered / requested)
+      </p>
+      <p className="text-[0.6rem] text-zinc-500 mb-4">
+        Error bars show 95% confidence interval across{" "}
+        {results[0]?.numRuns ?? "N"} Monte Carlo runs
+      </p>
       <ResponsiveContainer width="100%" height={280}>
-        <BarChart data={data} margin={{ top: 8, right: 24, left: 0, bottom: 4 }} barSize={48}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(63,63,70,0.3)" vertical={false} />
+        <BarChart
+          data={data}
+          margin={{ top: 8, right: 24, left: 0, bottom: 4 }}
+          barSize={48}
+        >
+          <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} vertical={false} />
           <XAxis dataKey="algorithm" axisLine={false} tickLine={false} />
-          <YAxis domain={[0, 100]} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}%`} />
+          <YAxis
+            domain={[0, 100]}
+            axisLine={false}
+            tickLine={false}
+            tickFormatter={(value) => `${value}%`}
+          />
           <Tooltip
             formatter={(value) => [`${Number(value).toFixed(1)}%`, "Fulfillment Rate"]}
-            contentStyle={{
-              backgroundColor: "#1a1a1f",
-              borderRadius: 8,
-              border: "1px solid rgba(63,63,70,0.5)",
-              color: "#f4f4f5",
-              fontFamily: "JetBrains Mono, monospace",
-              fontSize: 12,
-            }}
-            labelStyle={{ color: "#e4e4e7", fontFamily: "Sora, sans-serif", fontWeight: 600 }}
-            itemStyle={{ color: "#f4f4f5" }}
-            cursor={{ fill: "rgba(6, 182, 212, 0.05)" }}
+            contentStyle={CHART_TOOLTIP_STYLE}
+            labelStyle={CHART_TOOLTIP_LABEL_STYLE}
+            itemStyle={CHART_TOOLTIP_ITEM_STYLE}
+            cursor={{ fill: CHART_CURSOR_FILL }}
           />
           <Bar dataKey="value" radius={[4, 4, 0, 0]}>
             {data.map((entry) => (
-              <Cell key={entry.algoKey} fill={ALGO_COLORS[entry.algoKey]} fillOpacity={0.85} />
+              <Cell
+                key={entry.algoKey}
+                fill={ALGORITHM_THEMES[entry.algoKey].hex}
+                fillOpacity={0.85}
+              />
             ))}
-            <ErrorBar dataKey="ciUpper" direction="y" stroke="#71717a" strokeWidth={1} />
+            <ErrorBar dataKey="ciUpper" direction="y" stroke="#8f84b7" strokeWidth={1} />
           </Bar>
         </BarChart>
       </ResponsiveContainer>

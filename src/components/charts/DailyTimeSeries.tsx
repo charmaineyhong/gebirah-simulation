@@ -3,15 +3,22 @@
  */
 
 import {
-  LineChart,
+  CartesianGrid,
+  Legend,
   Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
 } from "recharts";
+import {
+  ALGORITHM_THEMES,
+  CHART_AXIS_LABEL_STYLE,
+  CHART_GRID,
+  CHART_TOOLTIP_LABEL_STYLE,
+  CHART_TOOLTIP_STYLE,
+} from "../../config/theme";
 import type { ExperimentResult } from "../../simulation/types";
 
 interface Props {
@@ -21,28 +28,21 @@ interface Props {
   yLabel: string;
 }
 
-const COLORS: Record<string, string> = {
-  fifo: "#38bdf8",
-  priority: "#fbbf24",
-  weightOptimised: "#fb7185",
-};
-
-const ALGO_LABELS: Record<string, string> = {
-  fifo: "FIFO",
-  priority: "Priority",
-  weightOptimised: "Weight-Opt",
-};
-
-export default function DailyTimeSeries({ results, metric, title, yLabel }: Props) {
+export default function DailyTimeSeries({
+  results,
+  metric,
+  title,
+  yLabel,
+}: Props) {
   const numDays = results[0]?.avgDailyMetrics.length || 0;
-  const data = [];
+  const data: Record<string, number>[] = [];
 
-  for (let d = 0; d < numDays; d++) {
-    const point: Record<string, number> = { day: d + 1 };
-    for (const r of results) {
-      const dayMetrics = r.avgDailyMetrics[d];
+  for (let day = 0; day < numDays; day += 1) {
+    const point: Record<string, number> = { day: day + 1 };
+    for (const result of results) {
+      const dayMetrics = result.avgDailyMetrics[day];
       if (dayMetrics) {
-        point[r.algorithm] = dayMetrics[metric];
+        point[result.algorithm] = dayMetrics[metric];
       }
     }
     data.push(point);
@@ -53,44 +53,51 @@ export default function DailyTimeSeries({ results, metric, title, yLabel }: Prop
       <p className="section-label mb-4">{title}</p>
       <ResponsiveContainer width="100%" height={280}>
         <LineChart data={data} margin={{ top: 8, right: 24, left: 0, bottom: 4 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(63,63,70,0.3)" vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} vertical={false} />
           <XAxis
             dataKey="day"
             axisLine={false}
             tickLine={false}
-            label={{ value: "Day", position: "insideBottomRight", offset: -4, fill: "#52525b", fontSize: 11 }}
+            label={{
+              value: "Day",
+              position: "insideBottomRight",
+              offset: -4,
+              ...CHART_AXIS_LABEL_STYLE,
+            }}
           />
           <YAxis
             axisLine={false}
             tickLine={false}
-            label={{ value: yLabel, angle: -90, position: "insideLeft", fill: "#52525b", fontSize: 11 }}
+            label={{
+              value: yLabel,
+              angle: -90,
+              position: "insideLeft",
+              ...CHART_AXIS_LABEL_STYLE,
+            }}
           />
           <Tooltip
-            contentStyle={{
-              backgroundColor: "#1a1a1f",
-              borderRadius: 8,
-              border: "1px solid rgba(63,63,70,0.5)",
-              color: "#d4d4d8",
-              fontFamily: "JetBrains Mono, monospace",
-              fontSize: 12,
-            }}
-            labelStyle={{ color: "#71717a", fontFamily: "Sora, sans-serif" }}
+            contentStyle={CHART_TOOLTIP_STYLE}
+            labelStyle={CHART_TOOLTIP_LABEL_STYLE}
             labelFormatter={(label) => `Day ${label}`}
           />
           <Legend
             wrapperStyle={{ fontSize: 11, fontFamily: "Sora, sans-serif" }}
             iconType="plainline"
           />
-          {results.map((r) => (
+          {results.map((result) => (
             <Line
-              key={r.algorithm}
+              key={result.algorithm}
               type="monotone"
-              dataKey={r.algorithm}
-              name={ALGO_LABELS[r.algorithm]}
-              stroke={COLORS[r.algorithm]}
+              dataKey={result.algorithm}
+              name={ALGORITHM_THEMES[result.algorithm].label}
+              stroke={ALGORITHM_THEMES[result.algorithm].hex}
               strokeWidth={2}
               dot={false}
-              activeDot={{ r: 3.5, strokeWidth: 0, fill: COLORS[r.algorithm] }}
+              activeDot={{
+                r: 3.5,
+                strokeWidth: 0,
+                fill: ALGORITHM_THEMES[result.algorithm].hex,
+              }}
             />
           ))}
         </LineChart>

@@ -3,41 +3,38 @@
  */
 
 import {
-  BarChart,
   Bar,
-  XAxis,
-  YAxis,
+  BarChart,
   CartesianGrid,
-  Tooltip,
   Legend,
   ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from "recharts";
 import { COUNTRIES } from "../../config/constants";
+import {
+  ALGORITHM_THEMES,
+  CHART_CURSOR_FILL,
+  CHART_GRID,
+  CHART_TOOLTIP_ITEM_STYLE,
+  CHART_TOOLTIP_LABEL_STYLE,
+  CHART_TOOLTIP_STYLE,
+} from "../../config/theme";
 import type { ExperimentResult } from "../../simulation/types";
 
 interface Props {
   results: ExperimentResult[];
 }
 
-const COLORS: Record<string, string> = {
-  fifo: "#38bdf8",
-  priority: "#fbbf24",
-  weightOptimised: "#fb7185",
-};
-
-const ALGO_LABELS: Record<string, string> = {
-  fifo: "FIFO",
-  priority: "Priority",
-  weightOptimised: "Weight-Opt",
-};
-
 export default function CountryBreakdown({ results }: Props) {
   const data = COUNTRIES.map((country) => {
     const point: Record<string, string | number> = { country };
-    for (const r of results) {
-      const countryData = r.avgSummary.byCountry[country];
+    for (const result of results) {
+      const countryData = result.avgSummary.byCountry[country];
       if (countryData) {
-        point[r.algorithm] = Math.round(countryData.fulfillmentRate * 10000) / 100;
+        point[result.algorithm] =
+          Math.round(countryData.fulfillmentRate * 10000) / 100;
       }
     }
     return point;
@@ -45,35 +42,36 @@ export default function CountryBreakdown({ results }: Props) {
 
   return (
     <div className="panel p-5">
-      <p className="section-label mb-4">Fulfillment Rate by Country (delivered / requested)</p>
+      <p className="section-label mb-4">
+        Fulfillment Rate by Country (delivered / requested)
+      </p>
       <ResponsiveContainer width="100%" height={320}>
         <BarChart data={data} margin={{ top: 8, right: 24, left: 0, bottom: 4 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(63,63,70,0.3)" vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} vertical={false} />
           <XAxis dataKey="country" axisLine={false} tickLine={false} />
-          <YAxis domain={[0, 100]} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}%`} />
+          <YAxis
+            domain={[0, 100]}
+            axisLine={false}
+            tickLine={false}
+            tickFormatter={(value) => `${value}%`}
+          />
           <Tooltip
-            formatter={(value, name) => [`${Number(value).toFixed(1)}%`, `${name} Fulfillment`]}
-            contentStyle={{
-              backgroundColor: "#1a1a1f",
-              borderRadius: 8,
-              border: "1px solid rgba(63,63,70,0.5)",
-              color: "#f4f4f5",
-              fontFamily: "JetBrains Mono, monospace",
-              fontSize: 12,
-            }}
-            labelStyle={{ color: "#e4e4e7", fontFamily: "Sora, sans-serif", fontWeight: 600 }}
-            itemStyle={{ color: "#f4f4f5" }}
-            cursor={{ fill: "rgba(6, 182, 212, 0.05)" }}
+            formatter={(value, name) => [
+              `${Number(value).toFixed(1)}%`,
+              `${name} Fulfillment`,
+            ]}
+            contentStyle={CHART_TOOLTIP_STYLE}
+            labelStyle={CHART_TOOLTIP_LABEL_STYLE}
+            itemStyle={CHART_TOOLTIP_ITEM_STYLE}
+            cursor={{ fill: CHART_CURSOR_FILL }}
           />
-          <Legend
-            wrapperStyle={{ fontSize: 11, fontFamily: "Sora, sans-serif" }}
-          />
-          {results.map((r) => (
+          <Legend wrapperStyle={{ fontSize: 11, fontFamily: "Sora, sans-serif" }} />
+          {results.map((result) => (
             <Bar
-              key={r.algorithm}
-              dataKey={r.algorithm}
-              name={ALGO_LABELS[r.algorithm]}
-              fill={COLORS[r.algorithm]}
+              key={result.algorithm}
+              dataKey={result.algorithm}
+              name={ALGORITHM_THEMES[result.algorithm].label}
+              fill={ALGORITHM_THEMES[result.algorithm].hex}
               fillOpacity={0.85}
               radius={[3, 3, 0, 0]}
             />
