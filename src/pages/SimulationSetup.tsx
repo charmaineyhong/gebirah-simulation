@@ -3,6 +3,7 @@
  */
 
 import { useState } from "react";
+import HelpTooltip from "../components/HelpTooltip";
 import {
   DAILY_TARGET_DEPARTURES,
   WILLINGNESS_SCENARIOS,
@@ -60,7 +61,10 @@ export default function SimulationSetup({ onRun, isRunning }: Props) {
         {/* Start Month */}
         <div>
           <label className="block text-xs font-medium text-zinc-600 mb-1.5 flex items-center justify-between">
-            <span>Start Month</span>
+            <span className="flex items-center">
+              Start Month
+              <HelpTooltip text="The starting month for the 30-day simulation. This affects traveller volume due to seasonal travel patterns (e.g., more travel in June and December)." />
+            </span>
             <span className="font-mono text-[0.65rem] text-zinc-500">
               {seasonalDelta >= 0 ? "+" : ""}{seasonalDelta.toLocaleString()} travellers/day
             </span>
@@ -69,7 +73,7 @@ export default function SimulationSetup({ onRun, isRunning }: Props) {
             value={startMonth}
             onChange={(e) => setStartMonth(e.target.value)}
             disabled={isRunning}
-            className="w-full border border-edge rounded-lg px-3 py-2 text-sm bg-inset text-zinc-800 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 disabled:opacity-40 transition-colors"
+            className="w-full border border-edge rounded-lg px-3 py-2 text-sm bg-inset text-zinc-800 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             {months.map((m) => (
               <option key={m} value={m}>{m}</option>
@@ -82,8 +86,9 @@ export default function SimulationSetup({ onRun, isRunning }: Props) {
 
         {/* Reachable by Gebirah — text input */}
         <div>
-          <label className="block text-xs font-medium text-zinc-600 mb-1.5">
+          <label className="block text-xs font-medium text-zinc-600 mb-1.5 flex items-center">
             Willing travellers Gebirah can reach
+            <HelpTooltip text="The absolute number of willing travellers that Gebirah's platform can successfully contact and recruit per day. This represents your operational capacity or platform adoption." />
           </label>
           <input
             type="number"
@@ -93,7 +98,7 @@ export default function SimulationSetup({ onRun, isRunning }: Props) {
             onChange={(e) => setReachableInput(e.target.value)}
             onBlur={() => setReachableInput(String(reachableCount))}
             disabled={isRunning}
-            className="w-full border border-edge rounded-lg px-3 py-2 text-sm bg-inset text-zinc-800 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 disabled:opacity-40 transition-colors font-mono"
+            className="w-full border border-edge rounded-lg px-3 py-2 text-sm bg-inset text-zinc-800 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-mono"
             placeholder="e.g. 10"
           />
           <p className="text-[0.65rem] text-zinc-600 mt-1">
@@ -103,14 +108,15 @@ export default function SimulationSetup({ onRun, isRunning }: Props) {
 
         {/* Willingness Scenario */}
         <div>
-          <label className="block text-xs font-medium text-zinc-600 mb-1.5">
+          <label className="block text-xs font-medium text-zinc-600 mb-1.5 flex items-center">
             Willingness Scenario
+            <HelpTooltip text="The estimated total pool of travellers willing to carry donations, based on real-world passenger data multiplied by a willingness rate from the CAF World Giving Index." />
           </label>
           <select
             value={scenario}
             onChange={(e) => setScenario(e.target.value as WillingnessScenario)}
             disabled={isRunning}
-            className="w-full border border-edge rounded-lg px-3 py-2 text-sm bg-inset text-zinc-800 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 disabled:opacity-40 transition-colors"
+            className="w-full border border-edge rounded-lg px-3 py-2 text-sm bg-inset text-zinc-800 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             <option value="conservative">Conservative (~{Math.round(afterSeasonal * 0.03).toLocaleString()} willing/day)</option>
             <option value="likely">Likely (~{Math.round(afterSeasonal * 0.06).toLocaleString()} willing/day)</option>
@@ -123,14 +129,15 @@ export default function SimulationSetup({ onRun, isRunning }: Props) {
 
         {/* Urgency Scenario */}
         <div>
-          <label className="block text-xs font-medium text-zinc-600 mb-1.5">
+          <label className="block text-xs font-medium text-zinc-600 mb-1.5 flex items-center">
             Urgency Scenario
+            <HelpTooltip text="Defines the mix of 'High' and 'Low' urgency requests. High urgency requests must be matched within a specific time window or they expire." />
           </label>
           <select
             value={urgencyScenario}
             onChange={(e) => setUrgencyScenario(e.target.value as UrgencyScenario)}
             disabled={isRunning}
-            className="w-full border border-edge rounded-lg px-3 py-2 text-sm bg-inset text-zinc-800 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 disabled:opacity-40 transition-colors"
+            className="w-full border border-edge rounded-lg px-3 py-2 text-sm bg-inset text-zinc-800 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             <option value="normal">Normal (all Low Urgency)</option>
             <option value="someUrgent">Elevated (10% High Urgency, 90% Low Urgency)</option>
@@ -155,8 +162,9 @@ export default function SimulationSetup({ onRun, isRunning }: Props) {
 
         {/* Volunteers Singapore */}
         <div>
-          <label className="block text-xs font-medium text-zinc-600 mb-1.5">
+          <label className="block text-xs font-medium text-zinc-600 mb-1.5 flex items-center">
             Volunteers at Changi
+            <HelpTooltip text="The number of volunteers available at the airport to handle the handover of donations from travellers. Each volunteer has a 70-95% chance of successfully completing a handover." />
           </label>
           <input
             type="number"
@@ -165,7 +173,7 @@ export default function SimulationSetup({ onRun, isRunning }: Props) {
             onChange={(e) => setVolunteersInput(e.target.value)}
             onBlur={() => setVolunteersInput(String(volunteersSingapore))}
             disabled={isRunning}
-            className="w-full border border-edge rounded-lg px-3 py-2 text-sm bg-inset text-zinc-800 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 disabled:opacity-40 transition-colors font-mono"
+            className="w-full border border-edge rounded-lg px-3 py-2 text-sm bg-inset text-zinc-800 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-mono"
             placeholder="e.g. 5"
           />
           <p className="text-[0.65rem] text-zinc-600 mt-1">
@@ -175,8 +183,9 @@ export default function SimulationSetup({ onRun, isRunning }: Props) {
 
         {/* Requests Per Day */}
         <div>
-          <label className="block text-xs font-medium text-zinc-600 mb-1.5">
+          <label className="block text-xs font-medium text-zinc-600 mb-1.5 flex items-center">
             Donation Requests
+            <HelpTooltip text="The average number of new donation requests generated per day across all countries." />
           </label>
           <input
             type="number"
@@ -185,7 +194,7 @@ export default function SimulationSetup({ onRun, isRunning }: Props) {
             onChange={(e) => setRequestsInput(e.target.value)}
             onBlur={() => setRequestsInput(String(requestsPerDay))}
             disabled={isRunning}
-            className="w-full border border-edge rounded-lg px-3 py-2 text-sm bg-inset text-zinc-800 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 disabled:opacity-40 transition-colors font-mono"
+            className="w-full border border-edge rounded-lg px-3 py-2 text-sm bg-inset text-zinc-800 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-mono"
             placeholder="e.g. 15"
           />
           <p className="text-[0.65rem] text-zinc-600 mt-1">
@@ -196,9 +205,10 @@ export default function SimulationSetup({ onRun, isRunning }: Props) {
         {/* Expiry Days — only shown when urgency scenario has High requests */}
         {urgencyScenario !== "normal" && (
           <div>
-            <label className="block text-xs font-medium text-zinc-600 mb-1.5">
+            <label className="block text-xs font-medium text-zinc-600 mb-1.5 flex items-center">
               High Urgency Expiry{" "}
               <span className="font-mono text-accent">{urgentExpiryDays} days</span>
+              <HelpTooltip text="The number of days a 'High' urgency request can wait in the queue before it expires and is marked as unfulfilled." />
             </label>
             <input
               type="range"
