@@ -120,7 +120,7 @@ export const DEFAULT_EXPIRY_DAYS = 5;
 export const IATA_MAX_BAGGAGE_KG = 32;
 
 /** Safety buffer in kg (conservative margin) */
-export const SAFETY_BUFFER_KG = 2;tell
+export const SAFETY_BUFFER_KG = 2;
 
 /**
  * Personal luggage weight follows a Gamma distribution

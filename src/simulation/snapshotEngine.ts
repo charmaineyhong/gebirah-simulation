@@ -256,6 +256,8 @@ export function runSnapshotSimulation(
       byCountry: {} as AgentStateCounts["byCountry"],
       avgDeliveryTimeDays: 0,
       wastedCapacityRate: 0,
+      urgentFulfilled: 0,
+      totalUrgentGenerated: 0,
     };
 
     for (const country of COUNTRIES) {
