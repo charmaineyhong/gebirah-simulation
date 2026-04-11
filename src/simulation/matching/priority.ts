@@ -7,8 +7,7 @@ import type { UrgencyLevel } from "../../config/constants";
 
 const URGENCY_RANK: Record<UrgencyLevel, number> = {
   High: 0,   // highest priority (lowest number = first)
-  Medium: 1,
-  Low: 2,
+  Low: 1,
 };
 
 export function matchPriority(

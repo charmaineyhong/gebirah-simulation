@@ -1,9 +1,5 @@
 /**
  * Snapshot Engine
- *
- * Runs the same 30-day simulation as engine.ts but captures rich per-day
- * snapshots of all agent activity. Used by the live visualization to replay
- * the simulation day by day with animation.
  */
 
 import {
@@ -26,9 +22,7 @@ import type {
   SimulationConfig,
 } from "./types";
 
-// ============================================================
 // SNAPSHOT TYPES
-// ============================================================
 
 export interface MatchEvent {
   requestId: string;
@@ -64,7 +58,9 @@ export interface AgentStateCounts {
     fulfilled: number;
   }>;
   avgDeliveryTimeDays: number;
-  wastedCapacityRate: number; // fraction of departed travellers that left empty
+  wastedCapacityRate: number; 
+  urgentFulfilled: number;     
+  totalUrgentGenerated: number; 
 }
 
 export interface DaySnapshot {
@@ -73,7 +69,7 @@ export interface DaySnapshot {
   newTravellers: Traveller[];
   matchesMade: MatchEvent[];
   dispatchResult: DispatchResult;
-  arrivals: string[];           // request IDs that became Fulfilled this day
+  arrivals: string[];        
   agentStates: AgentStateCounts;
   metrics: DailyMetrics;
 }
@@ -86,18 +82,22 @@ export interface VisualizationData {
   totalDays: number;
 }
 
-// ============================================================
-// MONTHS LOOKUP
-// ============================================================
 
 const MONTH_NAMES = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 ];
 
-// ============================================================
-// SNAPSHOT SIMULATION
-// ============================================================
+
+function deriveDispatchSeed(algorithm: string, baseSeed: number): number {
+  const str = `dispatch-${algorithm}-${baseSeed}`;
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+}
 
 export function runSnapshotSimulation(
   config: SimulationConfig,
@@ -105,6 +105,7 @@ export function runSnapshotSimulation(
   seed: number
 ): VisualizationData {
   const rng = new SeededRNG(seed);
+  const dispatchRng = new SeededRNG(deriveDispatchSeed(algorithm, seed));
 
   const startMonthIndex = MONTH_NAMES.indexOf(config.startMonth);
   const monthName = MONTH_NAMES[startMonthIndex >= 0 ? startMonthIndex : 0];
@@ -121,25 +122,31 @@ export function runSnapshotSimulation(
   const TRANSIT_DAYS = 2;
 
   for (let day = 1; day <= config.simulationDays; day++) {
-    // --- Step 1: Generate new agents ---
-    const newRequests = generateDonationRequests(rng, day, monthName, config.requestsPerDay);
+    const newRequests = generateDonationRequests(rng, day, monthName, config.requestsPerDay, config.urgencyScenario, config.urgentExpiryDays);
     const newTravellers = generateTravellers(rng, day, monthName, config.willingnessScenario, config.platformAdoptionRate);
-
-    // Deep-copy new agents before they get mutated
     const snapshotNewRequests = newRequests.map(r => ({ ...r }));
     const snapshotNewTravellers = newTravellers.map(t => ({ ...t, assignedRequestIds: [...t.assignedRequestIds] }));
 
     allRequests.push(...newRequests);
     allTravellers.push(...newTravellers);
 
-    // --- Step 2: Record pre-match state, then run matching ---
+    for (const request of allRequests) {
+      if (
+        request.state === "Waiting" &&
+        request.urgency === "High" &&
+        request.expiryDay !== undefined &&
+        day > request.expiryDay
+      ) {
+        request.state = "Expired";
+      }
+    }
+
     const waitingBefore = new Set(
       allRequests.filter(r => r.state === "Waiting").map(r => r.id)
     );
 
     matchFunction(allRequests, allTravellers);
 
-    // Diff to find new matches
     const matchesMade: MatchEvent[] = [];
     for (const req of allRequests) {
       if (req.state === "Matched" && waitingBefore.has(req.id)) {
@@ -153,10 +160,7 @@ export function runSnapshotSimulation(
       }
     }
 
-    // --- Step 3: Dispatch volunteers ---
-    const dispatchResult = dispatchVolunteers(rng, allRequests, allTravellers, volunteers, day);
-
-    // --- Step 4: Process arrivals ---
+    const dispatchResult = dispatchVolunteers(dispatchRng, allRequests, allTravellers, volunteers, day);
     const arrivals: string[] = [];
     for (const request of allRequests) {
       if (
@@ -169,8 +173,6 @@ export function runSnapshotSimulation(
         arrivals.push(request.id);
       }
     }
-
-    // --- Step 5: Record metrics (same as engine.ts) ---
     const fulfilled = allRequests.filter(r => r.fulfilledDay === day).length;
     cumulativeFulfilled += fulfilled;
 
@@ -214,10 +216,13 @@ export function runSnapshotSimulation(
       .filter(r => r.fulfilledDay === day)
       .reduce((sum, r) => sum + r.weightKg, 0);
 
+    const expiredToday = allRequests.filter(r => r.state === "Expired" && r.expiryDay === day - 1).length;
+
     const metrics: DailyMetrics = {
       day,
       newRequests: newRequests.length,
       requestsFulfilledToday: fulfilled,
+      requestsExpiredToday: expiredToday,
       cumulativeFulfilled,
       backlogSize: backlog,
       travellersAvailable: newTravellers.length,
@@ -228,7 +233,6 @@ export function runSnapshotSimulation(
       byCountry,
     };
 
-    // --- Step 6: Capture agent state counts ---
     const agentStates: AgentStateCounts = {
       requests: {
         waiting: allRequests.filter(r => r.state === "Waiting").length,
@@ -252,6 +256,8 @@ export function runSnapshotSimulation(
       byCountry: {} as AgentStateCounts["byCountry"],
       avgDeliveryTimeDays: 0,
       wastedCapacityRate: 0,
+      urgentFulfilled: 0,
+      totalUrgentGenerated: 0,
     };
 
     for (const country of COUNTRIES) {
@@ -262,18 +268,19 @@ export function runSnapshotSimulation(
       };
     }
 
-    // Avg delivery time (days from datePosted to fulfilledDay)
     const fulfilledReqs = allRequests.filter(r => r.state === "Fulfilled" && r.fulfilledDay !== undefined);
     agentStates.avgDeliveryTimeDays = fulfilledReqs.length > 0
       ? Math.round(fulfilledReqs.reduce((sum, r) => sum + (r.fulfilledDay! - r.datePosted), 0) / fulfilledReqs.length * 10) / 10
       : 0;
 
-    // Wasted capacity rate
     const totalDeparted = allTravellers.filter(t => t.state === "Departed").length;
     const departedEmpty = allTravellers.filter(t => t.state === "Departed" && t.assignedRequestIds.length === 0).length;
     agentStates.wastedCapacityRate = totalDeparted > 0
       ? Math.round((departedEmpty / totalDeparted) * 1000) / 1000
       : 0;
+
+    agentStates.urgentFulfilled = allRequests.filter(r => r.urgency === "High" && r.state === "Fulfilled").length;
+    agentStates.totalUrgentGenerated = allRequests.filter(r => r.urgency === "High").length;
 
     snapshots.push({
       day,
