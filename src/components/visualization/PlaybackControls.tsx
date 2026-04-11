@@ -7,6 +7,7 @@ interface Props {
   onSpeedChange: (speed: number) => void;
   onSeek: (day: number) => void;
   onStop: () => void;
+  onSkip: () => void;
 }
 
 const SPEEDS = [1, 2, 5, 10];
@@ -20,6 +21,7 @@ export default function PlaybackControls({
   onSpeedChange,
   onSeek,
   onStop,
+  onSkip,
 }: Props) {
   const progress = totalDays > 0 ? (currentDay / totalDays) * 100 : 0;
   const isFinished = currentDay >= totalDays;
@@ -89,6 +91,14 @@ export default function PlaybackControls({
           onChange={(e) => onSeek(Number(e.target.value))}
           className="flex-1 h-1 accent-brand-500 cursor-pointer"
         />
+
+        {/* Skip to Results */}
+        <button
+          onClick={onSkip}
+          className="px-3 py-1.5 rounded-lg text-xs font-medium text-accent bg-accent/8 border border-accent/20 hover:bg-accent/15 transition-colors"
+        >
+          Skip to Results
+        </button>
 
         {/* Stop & Exit */}
         <button

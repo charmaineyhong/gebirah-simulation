@@ -1,17 +1,5 @@
 /**
  * Simulation Engine
- *
- * It runs the daily loop for 30 simulated days
- *
- * Each day, the engine:
- * 1. Generates new donation requests (Poisson arrivals, HDI-weighted)
- * 2. Generates new travellers (Changi data, Bernoulli willingness filter)
- * 3. Runs the matching algorithm (FIFO / Priority / Weight-Optimised)
- * 4. Dispatches volunteers and handles handovers
- * 5. Processes departures and arrivals
- * 6. Records daily metrics
- *
- * At the end, it computes summary metrics for the entire 30-day period.
  */
 
 import {
@@ -34,10 +22,9 @@ import type {
   SimulationConfig,
 } from "./types";
 
-// ============================================================
+
 // MONTHS LOOKUP - maps simulation day to a month name
-// For seasonal factor lookup. We use the config's startMonth.
-// ============================================================
+
 
 const MONTH_NAMES = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -45,15 +32,14 @@ const MONTH_NAMES = [
 ];
 
 function getMonthForDay(_day: number, startMonthIndex: number): string {
-  // Each simulation "month" is ~30 days, but our simulation is only 30 days
-  // so we just use the start month for all days
+
   return MONTH_NAMES[startMonthIndex % 12];
 }
 
-// ============================================================
+
 // MAIN SIMULATION FUNCTION
-// Runs one complete 30-day simulation with one algorithm
-// ============================================================
+
+
 
 export function runSimulation(
   config: SimulationConfig,
@@ -62,6 +48,7 @@ export function runSimulation(
   runId: number
 ): SimulationRunResult {
   const rng = new SeededRNG(seed);
+  const dispatchRng = new SeededRNG(seed + 1);
 
   // Determine start month index
   const startMonthIndex = MONTH_NAMES.indexOf(config.startMonth);
@@ -70,7 +57,6 @@ export function runSimulation(
   // Get the matching function for this algorithm
   const matchFunction = getMatchFunction(algorithm);
 
-  // State: all agents across the simulation
   const allRequests: DonationRequest[] = [];
   const allTravellers: Traveller[] = [];
   const volunteers: Volunteer[] = generateVolunteerPool(rng, config.volunteersSingapore);
@@ -79,36 +65,40 @@ export function runSimulation(
   const dailyMetrics: DailyMetrics[] = [];
   let cumulativeFulfilled = 0;
 
-  // Transit time: goods take 1-3 days to arrive after departure
   const TRANSIT_DAYS = 2;
 
-  // ========================================
   // THE DAILY LOOP (30 days)
-  // ========================================
+
   for (let day = 1; day <= config.simulationDays; day++) {
-    // --- Step 1: Generate new agents for today ---
-    const newRequests = generateDonationRequests(rng, day, monthName, config.requestsPerDay);
+
+    const newRequests = generateDonationRequests(rng, day, monthName, config.requestsPerDay, config.urgencyScenario, config.urgentExpiryDays);
     const newTravellers = generateTravellers(rng, day, monthName, config.willingnessScenario, config.platformAdoptionRate);
 
     allRequests.push(...newRequests);
     allTravellers.push(...newTravellers);
 
-    // --- Step 2: Run the matching algorithm ---
-    // This pairs waiting requests with available travellers
+    for (const request of allRequests) {
+      if (
+        request.state === "Waiting" &&
+        request.urgency === "High" &&
+        request.expiryDay !== undefined &&
+        day > request.expiryDay
+      ) {
+        request.state = "Expired";
+      }
+    }
+
     matchFunction(allRequests, allTravellers);
 
-    // --- Step 3: Dispatch volunteers and handle handovers ---
-    // Volunteers physically hand over goods at the airport
     const dispatchResult = dispatchVolunteers(
-      rng,
+      dispatchRng,
       allRequests,
       allTravellers,
       volunteers,
       day
     );
 
-    // --- Step 4: Process arrivals (goods that were in transit) ---
-    // Requests that have been in transit for TRANSIT_DAYS arrive
+
     for (const request of allRequests) {
       if (
         request.state === "InTransit" &&
@@ -120,8 +110,8 @@ export function runSimulation(
       }
     }
 
-    // --- Step 5: Record daily metrics ---
     const fulfilled = allRequests.filter((r) => r.fulfilledDay === day).length;
+    const expiredToday = allRequests.filter((r) => r.state === "Expired" && r.expiryDay === day - 1).length;
     cumulativeFulfilled += fulfilled;
 
     const backlog = allRequests.filter((r) => r.state === "Waiting").length;
@@ -169,6 +159,7 @@ export function runSimulation(
       day,
       newRequests: newRequests.length,
       requestsFulfilledToday: fulfilled,
+      requestsExpiredToday: expiredToday,
       cumulativeFulfilled,
       backlogSize: backlog,
       travellersAvailable: newTravellers.length,
@@ -180,9 +171,7 @@ export function runSimulation(
     });
   }
 
-  // ========================================
   // COMPUTE SUMMARY METRICS
-  // ========================================
   const summary = computeSummary(algorithm, allRequests, allTravellers, dailyMetrics);
 
   return {
@@ -194,10 +183,8 @@ export function runSimulation(
   };
 }
 
-// ============================================================
 // COMPUTE SUMMARY METRICS
-// Aggregates all 30 days into final numbers
-// ============================================================
+
 
 function computeSummary(
   algorithm: MatchingAlgorithm,
@@ -255,11 +242,28 @@ function computeSummary(
         ) / matchedTravellers.length
       : 0;
 
+  // Expired requests
+  const totalExpired = allRequests.filter((r) => r.state === "Expired").length;
+
+  // Max wait time — longest any request waited before being fulfilled or ending simulation
+  const SIMULATION_END = dailyMetrics.length;
+  const maxWaitTime = allRequests.reduce((max, r) => {
+    const endDay = r.fulfilledDay ?? SIMULATION_END;
+    return Math.max(max, endDay - r.datePosted);
+  }, 0);
+
+  // Requests waiting > 20 days — count of requests that were still undelivered at day 20+
+  const requestsWaitingOver20Days = allRequests.filter((r) => {
+    const endDay = r.fulfilledDay ?? SIMULATION_END;
+    return endDay - r.datePosted > 20;
+  }).length;
+
   // Per-country breakdown
   const byCountry = {} as SummaryMetrics["byCountry"];
   for (const country of COUNTRIES) {
     const countryRequests = allRequests.filter((r) => r.destination === country);
     const countryFulfilled = countryRequests.filter((r) => r.state === "Fulfilled");
+    const countryExpired = countryRequests.filter((r) => r.state === "Expired").length;
     const countryUnfulfilled = countryRequests.length - countryFulfilled.length;
 
     const countryAvgDelivery =
@@ -274,6 +278,7 @@ function computeSummary(
       totalRequests: countryRequests.length,
       fulfilled: countryFulfilled.length,
       unfulfilled: countryUnfulfilled,
+      expired: countryExpired,
       fulfillmentRate:
         countryRequests.length > 0
           ? countryFulfilled.length / countryRequests.length
@@ -287,6 +292,7 @@ function computeSummary(
     totalRequestsGenerated: totalGenerated,
     totalRequestsFulfilled: totalFulfilled,
     totalRequestsUnfulfilled: totalUnfulfilled,
+    totalExpired,
     fulfillmentRate: Math.round(fulfillmentRate * 10000) / 10000,
     avgDeliveryTimeDays: Math.round(avgDeliveryTime * 10) / 10,
     urgentFulfillmentRate: Math.round(urgentFulfillmentRate * 10000) / 10000,
@@ -294,6 +300,8 @@ function computeSummary(
     avgBacklogSize: Math.round(avgBacklog * 10) / 10,
     wastedCapacityRate: Math.round(wastedCapacityRate * 10000) / 10000,
     avgCapacityUtilisation: Math.round(avgCapacityUtilisation * 10000) / 10000,
+    maxWaitTime,
+    requestsWaitingOver20Days,
     byCountry,
   };
 }

@@ -2,76 +2,66 @@
  * Type Definitions for the Gebirah Agent-Based Simulation
  */
 
-import type { Country, UrgencyLevel, MatchingAlgorithm, WillingnessScenario } from "../config/constants";
+import type { Country, UrgencyLevel, MatchingAlgorithm, WillingnessScenario, UrgencyScenario } from "../config/constants";
 
-// ============================================================
 // AGENT 1: DONATION REQUEST
-// State machine: Waiting → Matched → InTransit → Fulfilled
-// (Can go back to Waiting on volunteer no-show)
-// ============================================================
 
 export type DonationRequestState = "Waiting" | "Matched" | "InTransit" | "Fulfilled" | "Expired";
 
 export interface DonationRequest {
   id: string;
   destination: Country;
-  weightKg: number;           // 1-15kg, how heavy the donated goods are
-  urgency: UrgencyLevel;      // High, Medium, or Low
-  datePosted: number;         // simulation day when the request was created
+  weightKg: number;          
+  urgency: UrgencyLevel;      
+  datePosted: number;        
   state: DonationRequestState;
-  matchedTravellerId?: string; // which traveller is carrying this
-  matchedDay?: number;         // simulation day when matched
-  fulfilledDay?: number;       // simulation day when delivered
+  matchedTravellerId?: string; 
+  matchedDay?: number;        
+  fulfilledDay?: number;       
+  expiryDay?: number;          
 }
 
-// ============================================================
 // AGENT 2: TRAVELLER
-// State machine: Available → Matched → Departed
-// (Departed can be "with donations" or "wasted capacity")
-// ============================================================
 
 export type TravellerState = "Available" | "Matched" | "Departed";
 
 export interface Traveller {
   id: string;
   destination: Country;
-  departureDay: number;       // simulation day when the flight departs
-  departureHour: number;      // hour of departure (6-23)
-  spareCapacityKg: number;    // how much extra space they have (IATA_MAX - personal - buffer)
+  departureDay: number;      
+  departureHour: number;      
+  spareCapacityKg: number;    
   state: TravellerState;
-  assignedRequestIds: string[]; // which donation requests they're carrying
-  usedCapacityKg: number;      // how much of their spare capacity is used
+  assignedRequestIds: string[]; 
+  usedCapacityKg: number;     
 }
 
-// ============================================================
 // AGENT 3: VOLUNTEER
-// State machine: Idle → Assigned → Delivering → Idle (cyclical)
-// Or: Assigned → Unavailable (on no-show)
-// ============================================================
+
 
 export type VolunteerState = "Idle" | "Assigned" | "Delivering" | "Unavailable";
 
 export interface Volunteer {
   id: string;
-  location: Country | "Singapore"; // where the volunteer is based
-  reliability: number;       // 0.70-0.95, probability of showing up
+  location: Country | "Singapore";
+  reliability: number;       
   state: VolunteerState;
-  assignedTravellerId?: string; // which traveller they're helping
+  assignedTravellerId?: string; 
 }
 
-// ============================================================
 // DAILY METRICS (recorded at the end of each simulated day)
-// ============================================================
+
 
 export interface DailyMetrics {
   day: number;
   newRequests: number;
   requestsFulfilledToday: number;
+  requestsExpiredToday: number;   
   cumulativeFulfilled: number;
-  backlogSize: number;        // requests still in Waiting state
+  backlogSize: number;        
   travellersAvailable: number;
   travellersMatched: number;
-  travellersDepartedEmpty: number; // wasted capacity
+  travellersDepartedEmpty: number; 
   totalWeightDeliveredToday: number;
   volunteerNoShows: number;
   byCountry: Record<Country, {
@@ -83,26 +73,29 @@ export interface DailyMetrics {
   }>;
 }
 
-// ============================================================
 // SIMULATION RESULTS (output of one complete simulation run)
-// ============================================================
+
 
 export interface SummaryMetrics {
   algorithm: MatchingAlgorithm;
   totalRequestsGenerated: number;
   totalRequestsFulfilled: number;
-  totalRequestsUnfulfilled: number;
-  fulfillmentRate: number;          // % fulfilled
-  avgDeliveryTimeDays: number;      // average days from posted to fulfilled
-  urgentFulfillmentRate: number;    // % of HIGH urgency requests fulfilled
+  totalRequestsUnfulfilled: number; 
+  totalExpired: number;             
+  fulfillmentRate: number;          
+  avgDeliveryTimeDays: number;      
+  urgentFulfillmentRate: number;    
   totalWeightDeliveredKg: number;
   avgBacklogSize: number;
-  wastedCapacityRate: number;       // % of travellers who departed empty
-  avgCapacityUtilisation: number;   // % of spare capacity used when matched
+  wastedCapacityRate: number;      
+  avgCapacityUtilisation: number;   
+  maxWaitTime: number;              
+  requestsWaitingOver20Days: number; 
   byCountry: Record<Country, {
     totalRequests: number;
     fulfilled: number;
     unfulfilled: number;
+    expired: number;
     fulfillmentRate: number;
     avgDeliveryTimeDays: number;
   }>;
@@ -116,9 +109,7 @@ export interface SimulationRunResult {
   dailyMetrics: DailyMetrics[];
 }
 
-// ============================================================
 // EXPERIMENT RESULTS (multiple runs averaged together)
-// ============================================================
 
 export interface ExperimentResult {
   algorithm: MatchingAlgorithm;
@@ -135,23 +126,21 @@ export interface ExperimentResult {
   avgDailyMetrics: DailyMetrics[];
 }
 
-// ============================================================
 // SIMULATION CONFIGURATION (what the user sets before running)
-// ============================================================
 
 export interface SimulationConfig {
   willingnessScenario: WillingnessScenario;
-  platformAdoptionRate: number; // what % of willing travellers actually use the platform
+  platformAdoptionRate: number; 
   numRuns: number;
   simulationDays: number;
-  startMonth: string; // for seasonal factor lookup
-  requestsPerDay: number; // avg donation requests per day (Poisson lambda)
-  volunteersSingapore: number; // number of volunteers at Changi for handovers
+  startMonth: string;
+  requestsPerDay: number; 
+  volunteersSingapore: number; 
+  urgencyScenario: UrgencyScenario; 
+  urgentExpiryDays: number;       
 }
 
-// ============================================================
 // FULL OUTPUT (one JSON file per willingness scenario)
-// ============================================================
 
 export interface ScenarioOutput {
   scenario: WillingnessScenario;

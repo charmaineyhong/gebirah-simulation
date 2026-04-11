@@ -7,112 +7,63 @@ import {
   DAILY_TARGET_DEPARTURES,
   WILLINGNESS_SCENARIOS,
   CAAS_DESTINATION_WEIGHTS,
+  SEASONAL_FACTORS,
+  DEFAULT_EXPIRY_DAYS,
   type WillingnessScenario,
+  type UrgencyScenario,
 } from "../config/constants";
 
 interface Props {
-  onRun: (scenario: WillingnessScenario, numRuns: number, startMonth: string, platformAdoptionRate: number, requestsPerDay: number, volunteersSingapore: number) => void;
+  onRun: (scenario: WillingnessScenario, startMonth: string, platformAdoptionRate: number, requestsPerDay: number, volunteersSingapore: number, urgencyScenario: UrgencyScenario, urgentExpiryDays: number) => void;
   isRunning: boolean;
 }
 
 export default function SimulationSetup({ onRun, isRunning }: Props) {
   const [scenario, setScenario] = useState<WillingnessScenario>("likely");
-  const [numRuns, setNumRuns] = useState(20);
   const [startMonth, setStartMonth] = useState("Jun");
-  const [adoptionRate, setAdoptionRate] = useState(0.01);
-  const [requestsPerDay, setRequestsPerDay] = useState(15);
-  const [volunteersSingapore, setVolunteersSingapore] = useState(5);
+  const [reachableInput, setReachableInput] = useState("10");
+  const [requestsInput, setRequestsInput] = useState("15");
+  const [volunteersInput, setVolunteersInput] = useState("5");
+  const [urgencyScenario, setUrgencyScenario] = useState<UrgencyScenario>("normal");
+  const [urgentExpiryDays, setUrgentExpiryDays] = useState(DEFAULT_EXPIRY_DAYS);
 
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
                    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
   const willingnessRate = WILLINGNESS_SCENARIOS[scenario];
-  const effectiveRate = willingnessRate * adoptionRate;
-  const expectedTravellersPerDay = Math.round(DAILY_TARGET_DEPARTURES * effectiveRate * 10) / 10;
+  const seasonalFactor = SEASONAL_FACTORS[startMonth] ?? 1;
+  const afterSeasonal = Math.round(DAILY_TARGET_DEPARTURES * seasonalFactor);
+  const seasonalDelta = Math.round(DAILY_TARGET_DEPARTURES * (seasonalFactor - 1));
+  const willingTravellers = Math.round(afterSeasonal * willingnessRate);
+
+  // Clamp typed values — only enforced on blur, raw string allowed during typing
+  const reachableCount = Math.min(Math.max(1, parseInt(reachableInput) || 1), willingTravellers);
+  const requestsPerDay = Math.max(1, parseInt(requestsInput) || 1);
+  const volunteersSingapore = Math.max(1, parseInt(volunteersInput) || 1);
+  const adoptionRate = willingTravellers > 0 ? reachableCount / willingTravellers : 0;
 
   const countryPreviews = {
-    Indonesia: Math.round(DAILY_TARGET_DEPARTURES * CAAS_DESTINATION_WEIGHTS.Indonesia * effectiveRate * 10) / 10,
-    Philippines: Math.round(DAILY_TARGET_DEPARTURES * CAAS_DESTINATION_WEIGHTS.Philippines * effectiveRate * 10) / 10,
-    Vietnam: Math.round(DAILY_TARGET_DEPARTURES * CAAS_DESTINATION_WEIGHTS.Vietnam * effectiveRate * 10) / 10,
-    Cambodia: Math.round(DAILY_TARGET_DEPARTURES * CAAS_DESTINATION_WEIGHTS.Cambodia * effectiveRate * 10) / 10,
-    Myanmar: Math.round(DAILY_TARGET_DEPARTURES * CAAS_DESTINATION_WEIGHTS.Myanmar * effectiveRate * 10) / 10,
+    Indonesia: Math.round(reachableCount * CAAS_DESTINATION_WEIGHTS.Indonesia),
+    Philippines: Math.round(reachableCount * CAAS_DESTINATION_WEIGHTS.Philippines),
+    Vietnam: Math.round(reachableCount * CAAS_DESTINATION_WEIGHTS.Vietnam),
+    Cambodia: Math.round(reachableCount * CAAS_DESTINATION_WEIGHTS.Cambodia),
+    Myanmar: Math.round(reachableCount * CAAS_DESTINATION_WEIGHTS.Myanmar),
   };
 
-  const supplyStatus = expectedTravellersPerDay < requestsPerDay;
+  const supplyStatus = reachableCount < requestsPerDay;
 
   return (
     <div className="panel p-7">
       <p className="section-label mb-5">Configuration</p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {/* Willingness Scenario */}
-        <div>
-          <label className="block text-xs font-medium text-zinc-600 mb-1.5">
-            Willingness Scenario
-          </label>
-          <select
-            value={scenario}
-            onChange={(e) => setScenario(e.target.value as WillingnessScenario)}
-            disabled={isRunning}
-            className="w-full border border-edge rounded-lg px-3 py-2 text-sm bg-inset text-zinc-800 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 disabled:opacity-40 transition-colors"
-          >
-            <option value="conservative">Conservative (3% willing)</option>
-            <option value="likely">Likely (6% willing)</option>
-            <option value="optimistic">Optimistic (10% willing)</option>
-          </select>
-          <p className="text-[0.65rem] text-zinc-600 mt-1">
-            Based on CAF World Giving Index
-          </p>
-        </div>
-
-        {/* Operational Reach Rate */}
-        <div>
-          <label className="block text-xs font-medium text-zinc-600 mb-1.5">
-            Operational Reach{" "}
-            <span className="font-mono text-accent">{(adoptionRate * 100).toFixed(1)}%</span>
-            {adoptionRate >= 0.059 && <span className="text-emerald-400 ml-1 font-normal text-[0.65rem]">MAX</span>}
-          </label>
-          <input
-            type="range"
-            min="0.001"
-            max="0.06"
-            step="0.001"
-            value={adoptionRate}
-            onChange={(e) => setAdoptionRate(Number(e.target.value))}
-            disabled={isRunning}
-            className="w-full mt-2 disabled:opacity-40 disabled:cursor-not-allowed"
-          />
-          <div className="flex justify-between text-[0.65rem] text-zinc-600 mt-1">
-            <span>0.1%</span>
-            <span>6.0%</span>
-          </div>
-        </div>
-
-        {/* Number of Runs */}
-        <div>
-          <label className="block text-xs font-medium text-zinc-600 mb-1.5">
-            Monte Carlo Runs
-          </label>
-          <select
-            value={numRuns}
-            onChange={(e) => setNumRuns(Number(e.target.value))}
-            disabled={isRunning}
-            className="w-full border border-edge rounded-lg px-3 py-2 text-sm bg-inset text-zinc-800 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 disabled:opacity-40 transition-colors"
-          >
-            <option value={5}>5 runs (fast)</option>
-            <option value={10}>10 runs</option>
-            <option value={20}>20 runs (recommended)</option>
-            <option value={50}>50 runs (precise)</option>
-          </select>
-          <p className="text-[0.65rem] text-zinc-600 mt-1">
-            More runs = tighter confidence intervals
-          </p>
-        </div>
-
         {/* Start Month */}
         <div>
-          <label className="block text-xs font-medium text-zinc-600 mb-1.5">
-            Start Month
+          <label className="block text-xs font-medium text-zinc-600 mb-1.5 flex items-center justify-between">
+            <span>Start Month</span>
+            <span className="font-mono text-[0.65rem] text-zinc-500">
+              {seasonalDelta >= 0 ? "+" : ""}{seasonalDelta.toLocaleString()} travellers/day
+            </span>
           </label>
           <select
             value={startMonth}
@@ -128,49 +79,143 @@ export default function SimulationSetup({ onRun, isRunning }: Props) {
             Seasonal scaling factor for traveller volume
           </p>
         </div>
-        {/* Requests Per Day */}
+
+        {/* Reachable by Gebirah — text input */}
         <div>
           <label className="block text-xs font-medium text-zinc-600 mb-1.5">
-            Donation Requests / Day{" "}
-            <span className="font-mono text-accent">{requestsPerDay}</span>
+            Willing travellers Gebirah can reach
           </label>
           <input
-            type="range"
-            min="5"
-            max="50"
-            step="1"
-            value={requestsPerDay}
-            onChange={(e) => setRequestsPerDay(Number(e.target.value))}
+            type="number"
+            min="1"
+            max={willingTravellers}
+            value={reachableInput}
+            onChange={(e) => setReachableInput(e.target.value)}
+            onBlur={() => setReachableInput(String(reachableCount))}
             disabled={isRunning}
-            className="w-full mt-2 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full border border-edge rounded-lg px-3 py-2 text-sm bg-inset text-zinc-800 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 disabled:opacity-40 transition-colors font-mono"
+            placeholder="e.g. 10"
           />
-          <div className="flex justify-between text-[0.65rem] text-zinc-600 mt-1">
-            <span>5</span>
-            <span>50</span>
-          </div>
+          <p className="text-[0.65rem] text-zinc-600 mt-1">
+            Min: 1 traveller · Max: {willingTravellers.toLocaleString()} travellers (all willing)
+          </p>
+        </div>
+
+        {/* Willingness Scenario */}
+        <div>
+          <label className="block text-xs font-medium text-zinc-600 mb-1.5">
+            Willingness Scenario
+          </label>
+          <select
+            value={scenario}
+            onChange={(e) => setScenario(e.target.value as WillingnessScenario)}
+            disabled={isRunning}
+            className="w-full border border-edge rounded-lg px-3 py-2 text-sm bg-inset text-zinc-800 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 disabled:opacity-40 transition-colors"
+          >
+            <option value="conservative">Conservative (~{Math.round(afterSeasonal * 0.03).toLocaleString()} willing/day)</option>
+            <option value="likely">Likely (~{Math.round(afterSeasonal * 0.06).toLocaleString()} willing/day)</option>
+            <option value="optimistic">Optimistic (~{Math.round(afterSeasonal * 0.10).toLocaleString()} willing/day)</option>
+          </select>
+          <p className="text-[0.65rem] text-zinc-600 mt-1">
+            ~{willingTravellers.toLocaleString()} travellers/day willing in {startMonth} · Based on CAF World Giving Index
+          </p>
+        </div>
+
+        {/* Urgency Scenario */}
+        <div>
+          <label className="block text-xs font-medium text-zinc-600 mb-1.5">
+            Urgency Scenario
+          </label>
+          <select
+            value={urgencyScenario}
+            onChange={(e) => setUrgencyScenario(e.target.value as UrgencyScenario)}
+            disabled={isRunning}
+            className="w-full border border-edge rounded-lg px-3 py-2 text-sm bg-inset text-zinc-800 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 disabled:opacity-40 transition-colors"
+          >
+            <option value="normal">Normal (all Low Urgency)</option>
+            <option value="someUrgent">Elevated (10% High Urgency, 90% Low Urgency)</option>
+            <option value="disasterResponse">Disaster (40% High Urgency, 60% Low Urgency)</option>
+          </select>
+          {urgencyScenario === "normal" && (
+            <p className="text-[0.65rem] text-zinc-600 mt-1">
+              All requests have no expiry and are served in arrival order
+            </p>
+          )}
+          {urgencyScenario !== "normal" && (
+            <div className="mt-1 space-y-0.5">
+              <p className="text-[0.65rem] text-zinc-600">
+                <span className="font-semibold text-zinc-700">High</span> — time-critical, expires if not matched within the expiry window
+              </p>
+              <p className="text-[0.65rem] text-zinc-600">
+                <span className="font-semibold text-zinc-700">Low</span> — standard request, no expiry, stays in queue until matched
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Volunteers Singapore */}
         <div>
           <label className="block text-xs font-medium text-zinc-600 mb-1.5">
-            Volunteers at Changi{" "}
-            <span className="font-mono text-accent">{volunteersSingapore}</span>
+            Volunteers at Changi
           </label>
           <input
-            type="range"
+            type="number"
             min="1"
-            max="20"
-            step="1"
-            value={volunteersSingapore}
-            onChange={(e) => setVolunteersSingapore(Number(e.target.value))}
+            value={volunteersInput}
+            onChange={(e) => setVolunteersInput(e.target.value)}
+            onBlur={() => setVolunteersInput(String(volunteersSingapore))}
             disabled={isRunning}
-            className="w-full mt-2 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full border border-edge rounded-lg px-3 py-2 text-sm bg-inset text-zinc-800 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 disabled:opacity-40 transition-colors font-mono"
+            placeholder="e.g. 5"
           />
-          <div className="flex justify-between text-[0.65rem] text-zinc-600 mt-1">
-            <span>1</span>
-            <span>20</span>
-          </div>
+          <p className="text-[0.65rem] text-zinc-600 mt-1">
+            Min: 1 volunteer
+          </p>
         </div>
+
+        {/* Requests Per Day */}
+        <div>
+          <label className="block text-xs font-medium text-zinc-600 mb-1.5">
+            Donation Requests
+          </label>
+          <input
+            type="number"
+            min="1"
+            value={requestsInput}
+            onChange={(e) => setRequestsInput(e.target.value)}
+            onBlur={() => setRequestsInput(String(requestsPerDay))}
+            disabled={isRunning}
+            className="w-full border border-edge rounded-lg px-3 py-2 text-sm bg-inset text-zinc-800 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 disabled:opacity-40 transition-colors font-mono"
+            placeholder="e.g. 15"
+          />
+          <p className="text-[0.65rem] text-zinc-600 mt-1">
+            Min: 1 request/day
+          </p>
+        </div>
+
+        {/* Expiry Days — only shown when urgency scenario has High requests */}
+        {urgencyScenario !== "normal" && (
+          <div>
+            <label className="block text-xs font-medium text-zinc-600 mb-1.5">
+              High Urgency Expiry{" "}
+              <span className="font-mono text-accent">{urgentExpiryDays} days</span>
+            </label>
+            <input
+              type="range"
+              min="3"
+              max="10"
+              step="1"
+              value={urgentExpiryDays}
+              onChange={(e) => setUrgentExpiryDays(Number(e.target.value))}
+              disabled={isRunning}
+              className="w-full mt-2 disabled:opacity-40 disabled:cursor-not-allowed"
+            />
+            <div className="flex justify-between text-[0.65rem] text-zinc-600 mt-1">
+              <span>3 days</span>
+              <span>10 days</span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Live Preview: Traveller Funnel */}
@@ -184,20 +229,24 @@ export default function SimulationSetup({ onRun, isRunning }: Props) {
         <div className="p-4 space-y-2 text-sm">
           <div className="flex justify-between items-center text-zinc-600">
             <span>Daily departures</span>
-            <span className="font-mono text-zinc-800">24,218</span>
+            <span className="font-mono text-zinc-800">24,218 travellers</span>
           </div>
           <div className="flex justify-between items-center text-zinc-600">
             <span>To 5 target countries</span>
-            <span className="font-mono text-zinc-800">{DAILY_TARGET_DEPARTURES.toLocaleString()}</span>
+            <span className="font-mono text-zinc-800">{DAILY_TARGET_DEPARTURES.toLocaleString()} travellers</span>
+          </div>
+          <div className="flex justify-between items-center text-zinc-600">
+            <span>After {startMonth} seasonal adjustment</span>
+            <span className="font-mono text-zinc-800">{afterSeasonal.toLocaleString()} travellers</span>
+          </div>
+          <div className="flex justify-between items-center text-zinc-600">
+            <span>Willing to carry donations</span>
+            <span className="font-mono text-zinc-800">{willingTravellers.toLocaleString()} travellers</span>
           </div>
           <div className="h-px bg-edge my-1" />
           <div className="flex justify-between items-center">
-            <span className="text-zinc-600">
-              {(willingnessRate * 100).toFixed(0)}% willing &times; {(adoptionRate * 100).toFixed(1)}% reach
-            </span>
-            <span className="font-mono font-semibold text-accent text-base">
-              {expectedTravellersPerDay}<span className="text-xs text-zinc-600 font-normal ml-1">/day</span>
-            </span>
+            <span className="text-zinc-600">Reachable by Gebirah</span>
+            <span className="font-mono text-zinc-800">{reachableCount} / {willingTravellers.toLocaleString()} willing travellers</span>
           </div>
         </div>
 
@@ -219,7 +268,7 @@ export default function SimulationSetup({ onRun, isRunning }: Props) {
       <div className="mt-6 space-y-4">
         <div className="flex items-center gap-4">
           <button
-            onClick={() => onRun(scenario, numRuns, startMonth, adoptionRate, requestsPerDay, volunteersSingapore)}
+            onClick={() => onRun(scenario, startMonth, adoptionRate, requestsPerDay, volunteersSingapore, urgencyScenario, urgentExpiryDays)}
             disabled={isRunning}
               className="px-7 py-2.5 bg-gradient-to-r from-accent via-accent-dim to-accent-bright text-white text-sm font-semibold rounded-xl shadow-[0_14px_28px_rgba(49,68,221,0.18)] hover:brightness-105 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
           >
@@ -236,7 +285,7 @@ export default function SimulationSetup({ onRun, isRunning }: Props) {
             )}
           </button>
           <span className="text-[0.65rem] text-zinc-500">
-            3 algorithms x {numRuns} runs x 30 days
+            3 algorithms × 50 runs × 30 days
           </span>
         </div>
 

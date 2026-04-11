@@ -240,10 +240,6 @@ export default function FlowMap({
   const todayFulfilled = snapshot?.arrivals.length ?? 0;
   const noShows = snapshot?.dispatchResult.volunteerNoShows ?? 0;
 
-  const fulfillmentPct =
-    requests.total > 0
-      ? ((requests.fulfilled / requests.total) * 100).toFixed(1)
-      : "0.0";
   const avgDelivery = agentStates?.avgDeliveryTimeDays ?? 0;
   const wastedPct = agentStates
     ? Math.round(agentStates.wastedCapacityRate * 100)
@@ -251,12 +247,9 @@ export default function FlowMap({
 
   return (
     <div className={`panel p-4 border ${algoBorderClass}`}>
-      <div className="flex items-center justify-between mb-2 pb-2.5 border-b border-edge">
+      <div className="flex items-center mb-2 pb-2.5 border-b border-edge">
         <span className={`text-xs font-bold uppercase tracking-wider ${algoTextClass}`}>
           {algorithmLabel}
-        </span>
-        <span className={`text-sm font-bold font-mono ${algoTextClass}`}>
-          {fulfillmentPct}%
         </span>
       </div>
 

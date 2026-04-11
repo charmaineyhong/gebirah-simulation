@@ -6,12 +6,30 @@ import { COUNTRIES } from "../../config/constants";
 import { ALGORITHM_THEMES, TABLE_DIVIDER } from "../../config/theme";
 import type { ExperimentResult } from "../../simulation/types";
 
+function Tip({ label, tip }: { label: string; tip: string }) {
+  return (
+    <span className="relative group/tip cursor-help inline-flex items-center gap-1">
+      {label}
+      <svg className="w-3 h-3 text-zinc-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <circle cx="12" cy="12" r="10" /><path strokeLinecap="round" d="M12 16v-4M12 8h.01" />
+      </svg>
+      <span className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-1.5 hidden group-hover/tip:block w-52 bg-zinc-800 text-white text-[0.62rem] leading-relaxed rounded-lg px-2.5 py-1.5 z-20 shadow-lg whitespace-normal font-normal">
+        {tip}
+      </span>
+    </span>
+  );
+}
+
 interface Props {
   results: ExperimentResult[];
 }
 
 export default function CountryTable({ results }: Props) {
   if (results.length === 0) return null;
+
+  const hasExpired = results.some((r) =>
+    COUNTRIES.some((c) => r.avgSummary.byCountry[c]?.expired > 0)
+  );
 
   const bestRateBadgeClass =
     "inline-block px-1.5 py-0.5 rounded border border-emerald-300/80 bg-emerald-100 text-emerald-800 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]";
@@ -63,11 +81,12 @@ export default function CountryTable({ results }: Props) {
             <tr>
               <th className='px-4 py-3 text-left'>Country</th>
               <th className='px-4 py-3 text-left'>Algorithm</th>
-              <th className='px-4 py-3 text-right'>Requests</th>
-              <th className='px-4 py-3 text-right'>Fulfilled</th>
-              <th className='px-4 py-3 text-right'>Unfulfilled</th>
-              <th className='px-4 py-3 text-right'>Rate</th>
-              <th className='px-4 py-3 text-right'>Avg Days</th>
+              <th className='px-4 py-3 text-right'><Tip label="Requests" tip="Total donation requests received for this country over 30 days" /></th>
+              <th className='px-4 py-3 text-right'><Tip label="Fulfilled" tip="Requests successfully delivered to recipients" /></th>
+              <th className='px-4 py-3 text-right'><Tip label="Unfulfilled" tip="Requests that were not delivered by the end of the simulation" /></th>
+              {hasExpired && <th className='px-4 py-3 text-right'><Tip label="Expired" tip="High-urgency requests that weren't matched in time and expired" /></th>}
+              <th className='px-4 py-3 text-right'><Tip label="Rate" tip="Fulfillment rate — % of requests delivered for this country" /></th>
+              <th className='px-4 py-3 text-right'><Tip label="Avg Days" tip="Average days from request posted to goods delivered — lower is better" /></th>
             </tr>
           </thead>
           <tbody>
@@ -122,6 +141,11 @@ export default function CountryTable({ results }: Props) {
                     <td className='px-4 py-2 text-right font-mono text-zinc-700'>
                       {countryData.unfulfilled}
                     </td>
+                    {hasExpired && (
+                      <td className='px-4 py-2 text-right font-mono text-zinc-700'>
+                        {countryData.expired}
+                      </td>
+                    )}
 
                     <td className='px-4 py-2 text-right font-mono font-medium'>
                       {isBestRate ? (

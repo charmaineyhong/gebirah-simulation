@@ -1,27 +1,15 @@
 /**
  * Experiment Runner
- *
- * 1. For each matching algorithm (FIFO, Priority, Weight-Optimised):
- *    - Run the simulation multiple times with different random seeds
- *    - Each run produces slightly different results (because of randomness)
- *    - Average all runs together to get reliable results
- *    - Calculate 95% confidence intervals (error bars)
- *
- * 2. The independent variable is the matching algorithm
- *    The dependent variables are the output metrics
- *    The controlled variables are: same agent data, same arrival rates,
- *    same distributions (controlled by using the same base seed structure)
- *
- * Output: One ExperimentResult per algorithm, containing averages +
- * confidence intervals across all runs.
  */
 
 import {
   MATCHING_ALGORITHMS,
   SIMULATION_DAYS,
   WILLINGNESS_SCENARIOS,
+  NUM_RUNS,
   type MatchingAlgorithm,
   type WillingnessScenario,
+  type UrgencyScenario,
 } from "../config/constants";
 
 import { runSimulation } from "./engine";
@@ -35,10 +23,6 @@ import type {
   ScenarioOutput,
 } from "./types";
 
-// ============================================================
-// RUN A FULL EXPERIMENT
-// Runs all 3 algorithms × N runs each for one willingness scenario
-// ============================================================
 
 export interface ExperimentProgress {
   currentAlgorithm: MatchingAlgorithm;
@@ -49,24 +33,27 @@ export interface ExperimentProgress {
 
 export function runExperiment(
   scenario: WillingnessScenario,
-  numRuns: number = 20,
   startMonth: string = "Jun",
   platformAdoptionRate: number = 0.01,
   onProgress?: (progress: ExperimentProgress) => void,
   requestsPerDay: number = 15,
-  volunteersSingapore: number = 5
+  volunteersSingapore: number = 5,
+  urgencyScenario: UrgencyScenario = "normal",
+  urgentExpiryDays: number = 5
 ): ScenarioOutput {
   const config: SimulationConfig = {
     willingnessScenario: scenario,
     platformAdoptionRate,
-    numRuns,
+    numRuns: NUM_RUNS,
     simulationDays: SIMULATION_DAYS,
     startMonth,
     requestsPerDay,
     volunteersSingapore,
+    urgencyScenario,
+    urgentExpiryDays,
   };
 
-  const totalSteps = MATCHING_ALGORITHMS.length * numRuns;
+  const totalSteps = MATCHING_ALGORITHMS.length * NUM_RUNS;
   let completedSteps = 0;
 
   const results: ExperimentResult[] = [];
@@ -74,15 +61,13 @@ export function runExperiment(
   for (const algorithm of MATCHING_ALGORITHMS) {
     const runs: SimulationRunResult[] = [];
 
-    for (let run = 0; run < numRuns; run++) {
-      // Each run gets a unique seed based on algorithm + run number
-      // This ensures reproducibility while giving different results per run
-      const seed = hashSeed(algorithm, run);
+    for (let run = 0; run < NUM_RUNS; run++) {
+      const seed = hashSeed(run);
 
       onProgress?.({
         currentAlgorithm: algorithm,
         currentRun: run + 1,
-        totalRuns: numRuns,
+        totalRuns: NUM_RUNS,
         percentComplete: Math.round((completedSteps / totalSteps) * 100),
       });
 
@@ -92,15 +77,14 @@ export function runExperiment(
       completedSteps++;
     }
 
-    // Average all runs together
     const experimentResult = aggregateRuns(algorithm, scenario, runs);
     results.push(experimentResult);
   }
 
   onProgress?.({
     currentAlgorithm: "weightOptimised",
-    currentRun: numRuns,
-    totalRuns: numRuns,
+    currentRun: NUM_RUNS,
+    totalRuns: NUM_RUNS,
     percentComplete: 100,
   });
 
@@ -113,17 +97,15 @@ export function runExperiment(
   };
 }
 
-// ============================================================
 // AGGREGATE RUNS
-// Averages multiple simulation runs and computes confidence intervals
-// ============================================================
+
 
 function aggregateRuns(
   algorithm: MatchingAlgorithm,
   scenario: WillingnessScenario,
   runs: SimulationRunResult[]
 ): ExperimentResult {
-  const numRuns = runs.length;
+  const NUM_RUNS = runs.length;
 
   // Average summary metrics across all runs
   const avgSummary = averageSummaries(algorithm, runs.map((r) => r.summary));
@@ -137,7 +119,7 @@ function aggregateRuns(
   return {
     algorithm,
     willingnessScenario: scenario,
-    numRuns,
+    numRuns: NUM_RUNS,
     avgSummary,
     confidenceIntervals,
     allRuns: runs,
@@ -145,10 +127,8 @@ function aggregateRuns(
   };
 }
 
-// ============================================================
 // AVERAGE SUMMARIES
-// Takes N summary objects and averages each field
-// ============================================================
+
 
 function averageSummaries(
   algorithm: MatchingAlgorithm,
@@ -167,6 +147,7 @@ function averageSummaries(
       totalRequests: Math.round(avg((s) => s.byCountry[country].totalRequests)),
       fulfilled: Math.round(avg((s) => s.byCountry[country].fulfilled)),
       unfulfilled: Math.round(avg((s) => s.byCountry[country].unfulfilled)),
+      expired: Math.round(avg((s) => s.byCountry[country].expired)),
       fulfillmentRate:
         Math.round(avg((s) => s.byCountry[country].fulfillmentRate) * 10000) / 10000,
       avgDeliveryTimeDays:
@@ -179,6 +160,7 @@ function averageSummaries(
     totalRequestsGenerated: Math.round(avg((s) => s.totalRequestsGenerated)),
     totalRequestsFulfilled: Math.round(avg((s) => s.totalRequestsFulfilled)),
     totalRequestsUnfulfilled: Math.round(avg((s) => s.totalRequestsUnfulfilled)),
+    totalExpired: Math.round(avg((s) => s.totalExpired)),
     fulfillmentRate: Math.round(avg((s) => s.fulfillmentRate) * 10000) / 10000,
     avgDeliveryTimeDays: Math.round(avg((s) => s.avgDeliveryTimeDays) * 10) / 10,
     urgentFulfillmentRate: Math.round(avg((s) => s.urgentFulfillmentRate) * 10000) / 10000,
@@ -186,14 +168,13 @@ function averageSummaries(
     avgBacklogSize: Math.round(avg((s) => s.avgBacklogSize) * 10) / 10,
     wastedCapacityRate: Math.round(avg((s) => s.wastedCapacityRate) * 10000) / 10000,
     avgCapacityUtilisation: Math.round(avg((s) => s.avgCapacityUtilisation) * 10000) / 10000,
+    maxWaitTime: Math.round(avg((s) => s.maxWaitTime) * 10) / 10,
+    requestsWaitingOver20Days: Math.round(avg((s) => s.requestsWaitingOver20Days)),
     byCountry,
   };
 }
 
-// ============================================================
 // CONFIDENCE INTERVALS
-// 95% CI = mean ± 1.96 * (standard deviation / √n)
-// ============================================================
 
 function computeConfidenceIntervals(summaries: SummaryMetrics[]) {
   return {
@@ -218,16 +199,14 @@ function computeCI(values: number[]): { lower: number; upper: number } {
   };
 }
 
-// ============================================================
 // AVERAGE DAILY METRICS
-// Averages day-by-day metrics across all runs
-// ============================================================
+
 
 function averageDailyMetrics(allRuns: DailyMetrics[][]): DailyMetrics[] {
   if (allRuns.length === 0) return [];
 
   const numDays = allRuns[0].length;
-  const numRuns = allRuns.length;
+  const NUM_RUNS = allRuns.length;
   const result: DailyMetrics[] = [];
 
   for (let d = 0; d < numDays; d++) {
@@ -239,19 +218,19 @@ function averageDailyMetrics(allRuns: DailyMetrics[][]): DailyMetrics[] {
     for (const country of countries) {
       byCountry[country] = {
         newRequests: Math.round(
-          dayMetrics.reduce((s, m) => s + m.byCountry[country].newRequests, 0) / numRuns
+          dayMetrics.reduce((s, m) => s + m.byCountry[country].newRequests, 0) / NUM_RUNS
         ),
         fulfilled: Math.round(
-          dayMetrics.reduce((s, m) => s + m.byCountry[country].fulfilled, 0) / numRuns
+          dayMetrics.reduce((s, m) => s + m.byCountry[country].fulfilled, 0) / NUM_RUNS
         ),
         backlog: Math.round(
-          dayMetrics.reduce((s, m) => s + m.byCountry[country].backlog, 0) / numRuns
+          dayMetrics.reduce((s, m) => s + m.byCountry[country].backlog, 0) / NUM_RUNS
         ),
         travellersAvailable: Math.round(
-          dayMetrics.reduce((s, m) => s + m.byCountry[country].travellersAvailable, 0) / numRuns
+          dayMetrics.reduce((s, m) => s + m.byCountry[country].travellersAvailable, 0) / NUM_RUNS
         ),
         travellersMatched: Math.round(
-          dayMetrics.reduce((s, m) => s + m.byCountry[country].travellersMatched, 0) / numRuns
+          dayMetrics.reduce((s, m) => s + m.byCountry[country].travellersMatched, 0) / NUM_RUNS
         ),
       };
     }
@@ -259,32 +238,35 @@ function averageDailyMetrics(allRuns: DailyMetrics[][]): DailyMetrics[] {
     result.push({
       day: d + 1,
       newRequests: Math.round(
-        dayMetrics.reduce((s, m) => s + m.newRequests, 0) / numRuns
+        dayMetrics.reduce((s, m) => s + m.newRequests, 0) / NUM_RUNS
       ),
       requestsFulfilledToday: Math.round(
-        dayMetrics.reduce((s, m) => s + m.requestsFulfilledToday, 0) / numRuns
+        dayMetrics.reduce((s, m) => s + m.requestsFulfilledToday, 0) / NUM_RUNS
+      ),
+      requestsExpiredToday: Math.round(
+        dayMetrics.reduce((s, m) => s + m.requestsExpiredToday, 0) / NUM_RUNS
       ),
       cumulativeFulfilled: Math.round(
-        dayMetrics.reduce((s, m) => s + m.cumulativeFulfilled, 0) / numRuns
+        dayMetrics.reduce((s, m) => s + m.cumulativeFulfilled, 0) / NUM_RUNS
       ),
       backlogSize: Math.round(
-        dayMetrics.reduce((s, m) => s + m.backlogSize, 0) / numRuns
+        dayMetrics.reduce((s, m) => s + m.backlogSize, 0) / NUM_RUNS
       ),
       travellersAvailable: Math.round(
-        dayMetrics.reduce((s, m) => s + m.travellersAvailable, 0) / numRuns
+        dayMetrics.reduce((s, m) => s + m.travellersAvailable, 0) / NUM_RUNS
       ),
       travellersMatched: Math.round(
-        dayMetrics.reduce((s, m) => s + m.travellersMatched, 0) / numRuns
+        dayMetrics.reduce((s, m) => s + m.travellersMatched, 0) / NUM_RUNS
       ),
       travellersDepartedEmpty: Math.round(
-        dayMetrics.reduce((s, m) => s + m.travellersDepartedEmpty, 0) / numRuns
+        dayMetrics.reduce((s, m) => s + m.travellersDepartedEmpty, 0) / NUM_RUNS
       ),
       totalWeightDeliveredToday:
         Math.round(
-          (dayMetrics.reduce((s, m) => s + m.totalWeightDeliveredToday, 0) / numRuns) * 10
+          (dayMetrics.reduce((s, m) => s + m.totalWeightDeliveredToday, 0) / NUM_RUNS) * 10
         ) / 10,
       volunteerNoShows: Math.round(
-        dayMetrics.reduce((s, m) => s + m.volunteerNoShows, 0) / numRuns
+        dayMetrics.reduce((s, m) => s + m.volunteerNoShows, 0) / NUM_RUNS
       ),
       byCountry,
     });
@@ -293,18 +275,15 @@ function averageDailyMetrics(allRuns: DailyMetrics[][]): DailyMetrics[] {
   return result;
 }
 
-// ============================================================
 // SEED HASHING
-// Creates unique but reproducible seeds for each algorithm + run
-// ============================================================
 
-function hashSeed(algorithm: string, runIndex: number): number {
+function hashSeed(runIndex: number): number {
   let hash = 0;
-  const str = `${algorithm}-run${runIndex}`;
+  const str = `run${runIndex}`;
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i);
     hash = (hash << 5) - hash + char;
-    hash |= 0; // Convert to 32-bit integer
+    hash |= 0;
   }
   return Math.abs(hash);
 }

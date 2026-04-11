@@ -1,17 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ComparisonBar from "../components/visualization/ComparisonBar";
-import EventLog from "../components/visualization/EventLog";
 import FlowMap from "../components/visualization/FlowMap";
 import PlaybackControls from "../components/visualization/PlaybackControls";
 import { getAlgorithmTheme } from "../config/theme";
 import type { VisualizationData, AgentStateCounts } from "../simulation/snapshotEngine";
+import type { ScenarioOutput } from "../simulation/types";
 
 interface Props {
   vizDataSet: VisualizationData[];
   onStop: () => void;
+  onComplete: () => void;
+  experimentOutput: ScenarioOutput | null;
 }
 
-export default function LiveVisualization({ vizDataSet, onStop }: Props) {
+export default function LiveVisualization({ vizDataSet, onStop, onComplete, experimentOutput }: Props) {
   const [currentDay, setCurrentDay] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [speed, setSpeed] = useState(1);
@@ -44,8 +46,11 @@ export default function LiveVisualization({ vizDataSet, onStop }: Props) {
   }, [isPlaying, speed, totalDays, currentDay]);
 
   useEffect(() => {
-    if (currentDay >= totalDays) setIsPlaying(false);
-  }, [currentDay, totalDays]);
+    if (currentDay >= totalDays) {
+      setIsPlaying(false);
+      onComplete();
+    }
+  }, [currentDay, totalDays, onComplete]);
 
   const handleTogglePlay = useCallback(() => {
     if (currentDay >= totalDays) {
@@ -96,27 +101,6 @@ export default function LiveVisualization({ vizDataSet, onStop }: Props) {
   }, [algoData]);
 
   const config = vizDataSet[0]?.config;
-
-  const ranking = useMemo(() => {
-    if (currentDay < totalDays) return null;
-
-    return vizDataSet
-      .map((visualization) => {
-        const states = visualization.days[totalDays - 1].agentStates;
-        const requests = states.requests;
-        const rate = requests.total > 0 ? (requests.fulfilled / requests.total) * 100 : 0;
-
-        return {
-          algo: visualization.algorithm,
-          fulfilled: requests.fulfilled,
-          total: requests.total,
-          rate,
-          avgDelivery: states.avgDeliveryTimeDays,
-          wastedPct: Math.round(states.wastedCapacityRate * 100),
-        };
-      })
-      .sort((left, right) => right.rate - left.rate);
-  }, [vizDataSet, currentDay, totalDays]);
 
   return (
     <div className="space-y-4">
@@ -174,6 +158,7 @@ export default function LiveVisualization({ vizDataSet, onStop }: Props) {
         onSpeedChange={handleSpeedChange}
         onSeek={handleSeek}
         onStop={onStop}
+        onSkip={onComplete}
       />
 
       {narrative && (
@@ -187,7 +172,7 @@ export default function LiveVisualization({ vizDataSet, onStop }: Props) {
         </div>
       )}
 
-      <ComparisonBar vizDataSet={vizDataSet} currentDay={currentDay} />
+      <ComparisonBar vizDataSet={vizDataSet} currentDay={currentDay} experimentOutput={experimentOutput} />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {algoData.map(({ visualization, snapshot, agentStates }) => {
@@ -208,93 +193,6 @@ export default function LiveVisualization({ vizDataSet, onStop }: Props) {
           );
         })}
       </div>
-
-      <EventLog snapshots={vizDataSet[0]?.days ?? []} currentDay={currentDay} />
-
-      {ranking && (
-        <div className="panel p-6 text-center">
-          <div className="text-accent text-lg font-semibold mb-4">
-            Simulation Complete
-          </div>
-
-          <div className="max-w-xl mx-auto space-y-2">
-            <div className="flex items-center gap-3 px-4 py-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
-              <span className="w-6" />
-              <span className="flex-1 text-left">Algorithm</span>
-              <span className="w-16 text-right">Delivered</span>
-              <span className="w-14 text-right">Rate</span>
-              <span className="w-14 text-right">Avg Time</span>
-              <span className="w-14 text-right">Wasted</span>
-            </div>
-
-            {ranking.map((result, index) => {
-              const algorithmTheme = getAlgorithmTheme(result.algo);
-
-              return (
-                <div
-                  key={result.algo}
-                  className={`flex items-center gap-3 px-4 py-2.5 rounded-lg ${
-                    index === 0
-                      ? "bg-accent/7 border border-accent/16"
-                      : "bg-white/55 border border-edge"
-                  }`}
-                >
-                  <span
-                    className={`text-sm font-bold font-mono w-6 ${
-                      index === 0 ? "text-accent" : "text-zinc-500"
-                    }`}
-                  >
-                    #{index + 1}
-                  </span>
-                  <span
-                    className={`text-sm font-semibold flex-1 text-left ${algorithmTheme.textClass}`}
-                  >
-                    {algorithmTheme.label}
-                  </span>
-                  <span className="text-xs font-mono text-zinc-600 w-16 text-right">
-                    {result.fulfilled}/{result.total}
-                  </span>
-                  <span
-                    className={`text-sm font-bold font-mono w-14 text-right ${
-                      index === 0 ? "text-accent" : "text-zinc-700"
-                    }`}
-                  >
-                    {result.rate.toFixed(1)}%
-                  </span>
-                  <span className="text-xs font-mono text-zinc-600 w-14 text-right">
-                    {result.avgDelivery}d
-                  </span>
-                  <span
-                    className={`text-xs font-mono w-14 text-right ${
-                      result.wastedPct > 60 ? "text-red-400" : "text-zinc-600"
-                    }`}
-                  >
-                    {result.wastedPct}%
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="flex items-center justify-center gap-3 mt-5">
-            <button
-              onClick={() => {
-                setCurrentDay(0);
-                setIsPlaying(true);
-              }}
-              className="px-4 py-2 rounded-xl text-sm font-medium text-white bg-gradient-to-r from-accent via-accent-dim to-accent-bright hover:brightness-105 transition-all shadow-[0_12px_24px_rgba(49,68,221,0.16)]"
-            >
-              Replay
-            </button>
-            <button
-              onClick={onStop}
-              className="px-4 py-2 rounded-xl text-sm font-medium text-zinc-700 bg-white/70 border border-edge hover:border-edge-strong transition-colors"
-            >
-              Back to Setup
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
