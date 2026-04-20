@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ComparisonBar from "../components/visualization/ComparisonBar";
 import FlowMap from "../components/visualization/FlowMap";
 import PlaybackControls from "../components/visualization/PlaybackControls";
+import RequestQueueViz from "../components/visualization/RequestQueueViz";
 import { getAlgorithmTheme } from "../config/theme";
 import type { VisualizationData, AgentStateCounts } from "../simulation/snapshotEngine";
 import type { ScenarioOutput } from "../simulation/types";
@@ -193,6 +194,8 @@ export default function LiveVisualization({ vizDataSet, onStop, onComplete, expe
           );
         })}
       </div>
+
+      <RequestQueueViz vizDataSet={vizDataSet} currentDay={currentDay} />
     </div>
   );
 }
