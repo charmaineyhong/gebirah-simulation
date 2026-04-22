@@ -329,7 +329,7 @@ export default function RequestQueueViz({ vizDataSet, currentDay }: Props) {
                             [...result.dispatched]
                               .sort((a, b) => a.datePosted !== b.datePosted ? a.datePosted - b.datePosted : a.arrivalOrder - b.arrivalOrder)
                               .map((cell) => (
-                                <RequestSquare key={cell.id} cell={cell} currentDay={currentDay} dimmed={false}/>
+                                <RequestSquare key={cell.id} cell={cell} currentDay={currentDay} dimmed={false} />
                               ))
                           )}
                         </div>
@@ -361,7 +361,7 @@ export default function RequestQueueViz({ vizDataSet, currentDay }: Props) {
                           ) : (
                             <>
                               {result.waitingCells.slice(0, 20).map((cell) => (
-                                <RequestSquare key={cell.id} cell={cell} currentDay={currentDay} dimmed={true}/>
+                                <RequestSquare key={cell.id} cell={cell} currentDay={currentDay} dimmed={true} />
                               ))}
                               {result.waitingCells.length > 20 && (
                                 <span className="text-[10px] text-zinc-300 self-center font-mono">

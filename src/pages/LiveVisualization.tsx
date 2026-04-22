@@ -195,7 +195,7 @@ export default function LiveVisualization({ vizDataSet, onStop, onComplete, expe
         })}
       </div>
 
-      <RequestQueueViz vizDataSet={vizDataSet} currentDay={currentDay} />
+      {/* <RequestQueueViz vizDataSet={vizDataSet} currentDay={currentDay} /> */}
     </div>
   );
 }

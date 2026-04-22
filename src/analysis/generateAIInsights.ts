@@ -19,24 +19,24 @@ Key domain knowledge:
 - HDI-based request weights (% of donation requests): Myanmar 35%, Cambodia 25%, Indonesia 20%, Philippines 15%, Vietnam 5%
 - CAAS traveller destination weights (% of travellers): Indonesia 54%, Philippines 22.7%, Vietnam 17.3%, Cambodia 3.8%, Myanmar 2.2%
 - This creates a structural mismatch: Myanmar/Cambodia have HIGH demand but VERY FEW travellers
-- 3 matching algorithms are compared:
-  - FIFO: First In, First Out (fairest baseline)
-  - Priority: Urgent requests first, then by date (best for urgent fulfillment)
-  - Weight-Optimised: 0/1 Knapsack to maximise kg per traveller (best for total weight delivered)
+- 3 matching methods are compared:
+  - FIFO: First In, First Out (a logistic matching / arrangement method, used as the fairest baseline)
+  - Priority: Urgent requests first, then by date (algorithm best for urgent fulfillment)
+  - Weight-Optimised: 0/1 Knapsack to maximise kg per traveller (algorithm best for total weight delivered)
 - Volunteers at Changi Airport perform handovers. Each has 70-95% reliability (Bernoulli). No-show = request re-queued
 - Goods are in transit for 2 days before becoming "Fulfilled"
 
 Your task: Analyze the simulation results and produce structured insights in TWO sections:
 
-**Section 1 - Overall & Algorithm Insights (3-5 insights):** Explicitly compare the 3 algorithms (FIFO, Priority, Weight-Optimised). Evaluate their trade-offs in this scenario (e.g., highest fulfillment rate vs most urgent requests handled vs most weight delivered). Recommend the best algorithm for this specific configuration. Also cover supply/demand balance and volunteer impact. Use categories: "supply", "demand", "volunteers", "algorithm", or "overall".
+**Section 1 - Overall & Method Insights (3-5 insights):** Explicitly compare the 3 methods (FIFO, Priority, Weight-Optimised). Evaluate their trade-offs in this scenario (e.g., highest fulfillment rate vs most urgent requests handled vs most weight delivered). Recommend the best method for this specific configuration. Also cover supply/demand balance and volunteer impact. Use categories: "supply", "demand", "volunteers", "algorithm", or "overall".
 
-**Section 2 - Country insights (1 insight per country that has notable findings):** For each country worth commenting on, provide a country-specific insight. You MUST recommend which algorithm benefits this specific country the most and explain WHY based on the data. Use category "country" and include the "country" field with the exact country name (Myanmar, Cambodia, Indonesia, Philippines, or Vietnam).
+**Section 2 - Country insights (1 insight per country that has notable findings):** For each country worth commenting on, provide a country-specific insight. You MUST recommend which method benefits this specific country the most and explain WHY based on the data. Use category "country" and include the "country" field with the exact country name (Myanmar, Cambodia, Indonesia, Philippines, or Vietnam).
 
 Focus on:
 1. WHY metrics are high or low (root cause analysis)
 2. Flagging anything unusual or out of the ordinary
 3. Explaining country-level disparities using the HDI vs CAAS weight mismatch
-4. Comparing algorithm performance explicitly per country, stating which algorithm is best suited for their specific supply/demand context.
+4. Comparing performance explicitly per country, stating which method is best suited for their specific supply/demand context.
 5. Identifying bottlenecks (supply, volunteers, geographic mismatch)
 
 Each insight must have:
@@ -61,7 +61,7 @@ function buildUserPrompt(output: ScenarioOutput): string {
 - Simulation days: ${config.simulationDays}
 - Monte Carlo runs: ${config.numRuns}
 
-## Results by Algorithm\n\n`;
+## Results by Method\n\n`;
 
   for (const r of results) {
     const s = r.avgSummary;
@@ -100,10 +100,10 @@ export async function generateAIInsights(output: ScenarioOutput): Promise<Insigh
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: "gpt-5",
+      model: "gpt-4o-mini",
       response_format: { type: "json_object" },
-      // temperature: 0.3,
-      // max_tokens: 2000,
+      temperature: 0.3,
+      max_tokens: 2000,
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: buildUserPrompt(output) },
