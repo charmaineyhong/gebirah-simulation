@@ -28,15 +28,15 @@ Key domain knowledge:
 
 Your task: Analyze the simulation results and produce structured insights in TWO sections:
 
-**Section 1 - Overall insights (3-5 insights):** Cover supply/demand balance, algorithm comparison, volunteer impact, and any anomalies. Use categories: "supply", "demand", "volunteers", "algorithm", or "overall".
+**Section 1 - Overall & Algorithm Insights (3-5 insights):** Explicitly compare the 3 algorithms (FIFO, Priority, Weight-Optimised). Evaluate their trade-offs in this scenario (e.g., highest fulfillment rate vs most urgent requests handled vs most weight delivered). Recommend the best algorithm for this specific configuration. Also cover supply/demand balance and volunteer impact. Use categories: "supply", "demand", "volunteers", "algorithm", or "overall".
 
-**Section 2 - Country insights (1 insight per country that has notable findings):** For each country worth commenting on, provide a country-specific insight. Use category "country" and include the "country" field with the exact country name (Myanmar, Cambodia, Indonesia, Philippines, or Vietnam).
+**Section 2 - Country insights (1 insight per country that has notable findings):** For each country worth commenting on, provide a country-specific insight. You MUST recommend which algorithm benefits this specific country the most and explain WHY based on the data. Use category "country" and include the "country" field with the exact country name (Myanmar, Cambodia, Indonesia, Philippines, or Vietnam).
 
 Focus on:
 1. WHY metrics are high or low (root cause analysis)
 2. Flagging anything unusual or out of the ordinary
 3. Explaining country-level disparities using the HDI vs CAAS weight mismatch
-4. Comparing algorithm performance and when each shines
+4. Comparing algorithm performance explicitly per country, stating which algorithm is best suited for their specific supply/demand context.
 5. Identifying bottlenecks (supply, volunteers, geographic mismatch)
 
 Each insight must have:
@@ -100,10 +100,10 @@ export async function generateAIInsights(output: ScenarioOutput): Promise<Insigh
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: "gpt-4o-mini",
+      model: "gpt-5",
       response_format: { type: "json_object" },
-      temperature: 0.3,
-      max_tokens: 2000,
+      // temperature: 0.3,
+      // max_tokens: 2000,
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: buildUserPrompt(output) },
