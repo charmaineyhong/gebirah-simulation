@@ -71,7 +71,7 @@ export function runSimulation(
 
   for (let day = 1; day <= config.simulationDays; day++) {
 
-    const newRequests = generateDonationRequests(rng, day, monthName, config.requestsPerDay, config.urgencyScenario, config.urgentExpiryDays);
+    const newRequests = generateDonationRequests(rng, day, config.requestsPerDay, config.urgencyScenario, config.urgentExpiryDays);
     const newTravellers = generateTravellers(rng, day, monthName, config.willingnessScenario, config.platformAdoptionRate);
 
     allRequests.push(...newRequests);

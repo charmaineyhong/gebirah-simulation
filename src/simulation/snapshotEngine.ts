@@ -122,7 +122,7 @@ export function runSnapshotSimulation(
   const TRANSIT_DAYS = 2;
 
   for (let day = 1; day <= config.simulationDays; day++) {
-    const newRequests = generateDonationRequests(rng, day, monthName, config.requestsPerDay, config.urgencyScenario, config.urgentExpiryDays);
+    const newRequests = generateDonationRequests(rng, day, config.requestsPerDay, config.urgencyScenario, config.urgentExpiryDays);
     const newTravellers = generateTravellers(rng, day, monthName, config.willingnessScenario, config.platformAdoptionRate);
     const snapshotNewRequests = newRequests.map(r => ({ ...r }));
     const snapshotNewTravellers = newTravellers.map(t => ({ ...t, assignedRequestIds: [...t.assignedRequestIds] }));

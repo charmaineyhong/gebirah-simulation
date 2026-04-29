@@ -45,40 +45,38 @@ import type { DonationRequest, Traveller, Volunteer } from "./types";
 export function generateDonationRequests(
   rng: SeededRNG,
   day: number,
-  month: string,
   requestsPerDay: number = REQUESTS_PER_DAY,
   urgencyScenario: UrgencyScenario = "normal",
   urgentExpiryDays: number = 5
 ): DonationRequest[] {
 
-  const seasonalFactor = SEASONAL_FACTORS[month] ?? 1.0;
-  const adjustedLambda = requestsPerDay * seasonalFactor;
-  const numRequests = samplePoisson(rng, adjustedLambda);
-
   const urgencyDistribution = URGENCY_SCENARIOS[urgencyScenario];
   const requests: DonationRequest[] = [];
+  let i = 0;
 
-  for (let i = 0; i < numRequests; i++) {
-  
-    const destination = sampleCategorical(rng, HDI_REQUEST_WEIGHTS);
+  for (const country of COUNTRIES) {
+    const lambda = requestsPerDay * HDI_REQUEST_WEIGHTS[country as Country];
+    const numRequests = samplePoisson(rng, lambda);
 
-    const weightKg = Math.round(
-      sampleUniformFloat(rng, REQUEST_WEIGHT_MIN_KG, REQUEST_WEIGHT_MAX_KG) * 10
-    ) / 10;
+    for (let j = 0; j < numRequests; j++) {
+      const weightKg = Math.round(
+        sampleUniformFloat(rng, REQUEST_WEIGHT_MIN_KG, REQUEST_WEIGHT_MAX_KG) * 10
+      ) / 10;
 
-    const urgency = sampleCategorical(rng, urgencyDistribution) as UrgencyLevel;
+      const urgency = sampleCategorical(rng, urgencyDistribution) as UrgencyLevel;
+      const expiryDay = urgency === "High" ? day + urgentExpiryDays : undefined;
 
-    const expiryDay = urgency === "High" ? day + urgentExpiryDays : undefined;
-
-    requests.push({
-      id: `req-d${day}-${i}`,
-      destination: destination as Country,
-      weightKg,
-      urgency,
-      datePosted: day,
-      state: "Waiting",
-      expiryDay,
-    });
+      requests.push({
+        id: `req-d${day}-${i}`,
+        destination: country as Country,
+        weightKg,
+        urgency,
+        datePosted: day,
+        state: "Waiting",
+        expiryDay,
+      });
+      i++;
+    }
   }
 
   return requests;
